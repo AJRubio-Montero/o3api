@@ -104,13 +104,16 @@ ENV HOME /root
 # install and configure oidc-agent (install AFTER CDO because it updates /etc/X11/Xsession.options)
 # bashrc entries for oidc-agent
 COPY .oidc-agent/oidc-check.bashrc /root/
+COPY .oidc-agent/oidc-unlock.sh /usr/local/bin/
 ENV OIDC_CONFIG_DIR /srv/.oidc-agent
 
 RUN curl repo.data.kit.edu/key.pgp | apt-key add - && \
     add-apt-repository "deb http://repo.data.kit.edu/${base}/$(lsb_release -sc) ./" && \
     DEBIAN_FRONTEND=noninteractive apt-get update && \
-    apt-get install -y --no-install-recommends oidc-agent && \
+    apt-get install -y --no-install-recommends oidc-agent \
+            expect && \
     cat /root/oidc-check.bashrc >> /root/.bashrc && \
+    ln -s /usr/local/bin/oidc-unlock.sh /usr/local/bin/oidc-unlock && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
