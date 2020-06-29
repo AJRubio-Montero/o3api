@@ -32,6 +32,8 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get update && \
          binutils \
          curl \
          git \
+         gnupg \
+         lsb-release \
          parallel \
          wget \
          python3-setuptools \
@@ -68,6 +70,22 @@ RUN wget https://downloads.rclone.org/rclone-current-linux-amd64.deb && \
 
 ENV RCLONE_CONFIG=/srv/.rclone/rclone.conf
 
+# For compatibility with udocker
+ENV USER root
+ENV HOME /root
+
+# bashrc entries for oidc-agent
+COPY .oidc-agent/oidc-check.bashrc /root/
+ENV OIDC_CONFIG_DIR /srv/.oidc-agent
+
+RUN curl repo.data.kit.edu/key.pgp | apt-key add - && \
+    add-apt-repository "deb http://repo.data.kit.edu/ubuntu/$(lsb_release -sr) ./" && \
+    DEBIAN_FRONTEND=noninteractive apt-get oidc-agent && \
+    cat /root/oidc-check.bashrc >> /root/.bashrc && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+
 # Install JupyterLab
 ENV JUPYTER_CONFIG_DIR /srv/o3as/.jupyter/
 # Necessary for the Jupyter Lab terminal
@@ -91,17 +109,18 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get update && \
     pip --version
 
 # Install user app:
-#RUN git clone -b $branch https://git.scc.kit.edu/synergy.o3as/o3as.git && \
-#    cd  o3as && \
-#    pip install --no-cache-dir -e . && \
-#    rm -rf /root/.cache/pip/* && \
-#    rm -rf /tmp/* && \
-#    cd ..
+RUN git clone -b $branch https://git.scc.kit.edu/synergy.o3as/o3as.git && \
+    cd  o3as && \
+    pip install --no-cache-dir -r requirements.txt && \
+    #pip install --no-cache-dir -e . && \
+    rm -rf /root/.cache/pip/* && \
+    rm -rf /tmp/* && \
+    cd ..
 
 # Install user app:
 # Use docker build gitlab_link
-ADD $PWD /srv/o3as/
-RUN cd /srv/o3as && pip install --no-cache-dir -r requirements.txt
+#ADD $PWD /srv/o3as/
+#RUN cd /srv/o3as && pip install --no-cache-dir -r requirements.txt
 
 # Open Jupyter port
 EXPOSE 8888
