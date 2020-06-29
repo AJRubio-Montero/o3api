@@ -19,13 +19,16 @@ FROM ${base}:${tag}
 LABEL maintainer='B.Esteban, T.Kerzenmacher, V.Kozlov (KIT)'
 # o3as scripts to process data
 
+# renew 'tag' to access during the build
+ARG base
+
 # What user branch to clone (!)
 ARG branch=master
 
 # If to install JupyterLab
 ARG jlab=true
 
-# Install ubuntu updates and python related stuff
+# Install debian/ubuntu updates and python related stuff
 # link python3 to python, pip3 to pip, if needed
 RUN DEBIAN_FRONTEND=noninteractive apt-get update && \
     apt-get install -y --no-install-recommends \
@@ -36,6 +39,7 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get update && \
          lsb-release \
          parallel \
          wget \
+         software-properties-common \
          python3-setuptools \
          python3-pip \
          python3-wheel && \ 
@@ -70,22 +74,6 @@ RUN wget https://downloads.rclone.org/rclone-current-linux-amd64.deb && \
 
 ENV RCLONE_CONFIG=/srv/.rclone/rclone.conf
 
-# For compatibility with udocker
-ENV USER root
-ENV HOME /root
-
-# bashrc entries for oidc-agent
-COPY .oidc-agent/oidc-check.bashrc /root/
-ENV OIDC_CONFIG_DIR /srv/.oidc-agent
-
-RUN curl repo.data.kit.edu/key.pgp | apt-key add - && \
-    add-apt-repository "deb http://repo.data.kit.edu/ubuntu/$(lsb_release -sr) ./" && \
-    DEBIAN_FRONTEND=noninteractive apt-get oidc-agent && \
-    cat /root/oidc-check.bashrc >> /root/.bashrc && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
-
-
 # Install JupyterLab
 ENV JUPYTER_CONFIG_DIR /srv/o3as/.jupyter/
 # Necessary for the Jupyter Lab terminal
@@ -107,6 +95,25 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get update && \
     rm -rf /tmp/* && \
     python --version && \
     pip --version
+
+
+# For compatibility with udocker
+ENV USER root
+ENV HOME /root
+
+# install and configure oidc-agent (install AFTER CDO because it updates /etc/X11/Xsession.options)
+# bashrc entries for oidc-agent
+COPY .oidc-agent/oidc-check.bashrc /root/
+ENV OIDC_CONFIG_DIR /srv/.oidc-agent
+
+RUN curl repo.data.kit.edu/key.pgp | apt-key add - && \
+    add-apt-repository "deb http://repo.data.kit.edu/${base}/$(lsb_release -sc) ./" && \
+    DEBIAN_FRONTEND=noninteractive apt-get update && \
+    apt-get install -y --no-install-recommends oidc-agent && \
+    cat /root/oidc-check.bashrc >> /root/.bashrc && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
 
 # Install user app:
 RUN git clone -b $branch https://git.scc.kit.edu/synergy.o3as/o3as.git && \
