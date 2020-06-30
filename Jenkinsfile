@@ -97,6 +97,7 @@ pipeline {
                 }
             }
             steps{
+                cleanWs()
                 checkout scm
                 script {
                     // build different tags
