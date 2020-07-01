@@ -110,12 +110,6 @@ pipeline {
                                             build_args: ["base=debian",
                                                          "tag=stable-slim",
                                                          "branch=master"])
-                       // ubuntu
-                       id_ubuntu = DockerBuild(id,
-                                            tag: ['ubuntu'], 
-                                            build_args: ["base=ubuntu",
-                                                         "tag=bionic",
-                                                         "branch=master"])
                     }
 
                     if (env.BRANCH_NAME == 'test') {
@@ -126,11 +120,11 @@ pipeline {
                                                          "tag=stable-slim",
                                                          "branch=test"])
                        // ubuntu
-                       id_ubuntu = DockerBuild(id,
-                                            tag: ['ubuntu-test'], 
-                                            build_args: ["base=ubuntu",
-                                                         "tag=bionic",
-                                                         "branch=test"])
+                       //id_ubuntu = DockerBuild(id,
+                       //                     tag: ['ubuntu-test'], 
+                       //                     build_args: ["base=ubuntu",
+                       //                                  "tag=bionic",
+                       //                                  "branch=test"])
                     }
                  }
             }
@@ -147,7 +141,7 @@ pipeline {
             steps{
                 script {
                     DockerPush(id_deb)
-                    DockerPush(id_ubuntu)
+                    //DockerPush(id_ubuntu)
                 }
             }
             post {
@@ -186,7 +180,7 @@ terminated with '${build_status}' status.\n\n
 Check console output at:\n\n
 *  ${env.BUILD_URL}/console\n\n
 
-DEEP Jenkins CI service"""
+Jenkins CI/CD service"""
 
                 EmailSend(subject, body, "${author_email}")
             }
