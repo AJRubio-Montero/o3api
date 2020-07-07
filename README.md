@@ -1,9 +1,9 @@
 O3AS - service to analyse ozone projections
 ===========================================
 
-Copyright (c) 2017 - 2019 Karlsruhe Institute of Technology - Steinbuch Centre for Computing
-This code is distributed under the MIT License
-Please, see the LICENSE file
+Copyright (c) 2017 - 2019 Karlsruhe Institute of Technology - Steinbuch Centre for Computing.
+
+This code is distributed under the GNU LGPLv3 License. Please, see the LICENSE file
 
 @authors: Valentin Kozlov, Borja Esteban, Tobias Kerzenmacher
 
