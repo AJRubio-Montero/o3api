@@ -48,7 +48,8 @@ class TestModelMethods(unittest.TestCase):
         self.assertEqual(self.meta['name'].replace('-','_'),
                         'o3as'.replace('-','_'))
         self.assertEqual(self.meta['author'], 'KIT-IMK')
-        self.assertEqual(self.meta['author-email'], 'tobias.kerzenmacher@kit.edu')
+        self.assertEqual(self.meta['author-email'].lower(), 'tobias.kerzenmacher@kit.edu'.lower())
+        self.assertEqual(self.meta['license'], 'GNU LGPLv3')
 
 
 if __name__ == '__main__':
