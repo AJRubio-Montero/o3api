@@ -25,7 +25,7 @@ udocker pull ${DOCKER_IMAGE}
 udocker create --name=${UDOCKER_CONTAINER} ${DOCKER_IMAGE}
 # NB: creating container may take 5-10 minutes...
 #may change execmode:
-#udocker setup --execmode=F3 o3as-ubuntu
+#udocker setup --execmode=F3 ${UDOCKER_CONTAINER}
 #####
 
 # Directories at your host for the raw data and outputs
