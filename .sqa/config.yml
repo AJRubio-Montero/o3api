@@ -1,0 +1,31 @@
+config:
+  project_repos:
+    o3as:
+      repo: 'https://git.scc.kit.edu/synergy.o3as/o3as'
+
+sqa_criteria:
+  qc_style:
+    repos:
+      deepaas:
+        container: o3as-testing
+        tox:
+          tox_file: /o3as-testing/tox.ini
+          testenv:
+            - pep8
+  qc_coverage:
+    repos:
+      deepaas:
+        container: o3as-testing
+        tox:
+          tox_file: /o3as-testing/tox.ini
+          testenv: 
+            - cover
+            - cobertura
+  qc_security:
+    repos:
+      deepaas:
+        container: o3as-testing
+        tox:
+          tox_file: /o3as-testing/tox.ini
+          testenv:
+            - bandit
