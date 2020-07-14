@@ -6,7 +6,7 @@ config:
 sqa_criteria:
   qc_style:
     repos:
-      deepaas:
+      o3as:
         container: o3as-testing
         tox:
           tox_file: /o3as-testing/tox.ini
@@ -14,7 +14,7 @@ sqa_criteria:
             - pep8
   qc_coverage:
     repos:
-      deepaas:
+      o3as:
         container: o3as-testing
         tox:
           tox_file: /o3as-testing/tox.ini
@@ -23,7 +23,7 @@ sqa_criteria:
             - cobertura
   qc_security:
     repos:
-      deepaas:
+      o3as:
         container: o3as-testing
         tox:
           tox_file: /o3as-testing/tox.ini
