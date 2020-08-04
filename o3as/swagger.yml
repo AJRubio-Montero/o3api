@@ -1,0 +1,85 @@
+swagger: "2.0"
+info:
+  description: This is the swagger file that goes with our server code
+  version: "1.0.0"
+  title: Swagger REST o3as
+consumes:
+  - "application/json"
+produces:
+  - "application/pdf"
+  - "application/json"
+
+basePath: "/api"
+
+# Paths supported by the server application
+paths:
+  /plot:
+    post:
+      operationId: "o3as.api.plot"
+      tags:
+        - "plot"
+      summary: "The a plot supported by the server application"
+      description: "Create a plot"
+      parameters:
+        - name: type
+          in: query
+          type: string
+          description: Plot type (tco, ...)
+          default: "tco"
+          required: true
+        - name: models
+          in: query
+          type: array
+          items:
+            type: string
+          description: Names of models (dataset-model)
+          default: [ecmwf-era,ccmi-mocage,ccmi-umukca-ucam]
+          required: true
+        - name: begin_year
+          in: query
+          type: integer
+          description: Year to start data scanning from
+          default: 1979
+          required: false
+        - name: end_year
+          in: query
+          type: integer
+          description: Year to finish data scanning
+          default: 2019
+          required: false
+        - name: lat_min
+          in: query
+          type: integer
+          description: Latitude (min) to define the range (-90..90)
+          required: false
+        - name: lat_max
+          in: query
+          type: integer
+          description: Latitude (max) to define the range (-90..90)
+          required: false
+      responses:
+        200:
+          description: "Successfully created a plot"
+          schema:
+            type: file
+          schema:
+            $ref: '#/definitions/Data'
+#        default:
+#          description: "Unexpected error"
+#          schema:
+#            $ref: "#/definitions/Error"
+definitions:
+  Data:
+    type: array
+    items:        
+      properties:
+        plot_type:
+          type: string
+        model:
+          type: string
+        x:
+          type: array
+        y:
+          type: array
+  Error:
+    type: string
