@@ -11,9 +11,20 @@ Created on Mon Aug  3 15:48:04 2020
 """
 
 import logging
-import xarray as xr
+import numpy as np
 
 logger = logging.getLogger('__name__') #o3asplot
+
+def check_latitude_order(ds):
+    """
+    Function to check latitude order
+    :param ds: xarray dataset to check
+    :return: lat_0, lat_last
+    """
+    lat_0 = np.amin(ds.coords['latitude'].values[0])
+    lat_last = np.amax(ds.coords['latitude'].values[-1])
+
+    return lat_0, lat_last
 
 def process_for_tco(**kwargs):
     """Data processing for TCO plot
@@ -31,16 +42,27 @@ def process_for_tco(**kwargs):
     lat_min = kwargs['lat_min']
     lat_max = kwargs['lat_max']
 
+    # check in what order latitude is used, e.g. (-90..90) or (90..-90)
+    lat_0, lat_last = check_latitude_order(ds)
+    logger.debug("ds: lat_0 = {}, lat_last: {}".format(lat_0, lat_last))
+    if lat_0 < lat_last:
+        lat_a = lat_min
+        lat_b = lat_max
+    else:
+        lat_a = lat_max
+        lat_b = lat_min
     # select period and latitude
-    ds_period = ds.sel(time=slice("{}-01-01".format(b_year), 
-                                  "{}-12-31".format(e_year)),
-                       latitude=slice(lat_max,
-                                      lat_min))
+    # BUG(?) ccmi-umukca-ucam complains about 31-12-year, but 30-12-year works
+    ds_period = ds.sel(time=slice("{}-01-01T00:00:00".format(b_year), 
+                                  "{}-12-30T23:59:59".format(e_year)),
+                       latitude=slice(lat_a,
+                                      lat_b))
     try:
         o3_tco = ds_period[["tco"]]
     except:
         ds_w_tco = ds_period.assign(tco=((ds_period.o3/ds_period.t)
-                                         *ds_period.level)*0.724637681159e+19)
+                                         *ds_period.level)*1.45e+6)
+                                         # 0.724637681159e+19
         ds_tco = ds_w_tco[["tco"]]
 
         # Selection phase: calculate tco over column:

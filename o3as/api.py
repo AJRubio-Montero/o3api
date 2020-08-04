@@ -97,8 +97,8 @@ def _catch_error(f):
                 pdf.add_page()
                 pdf.set_font("Arial", size = 14)
                 for key, value in e_message[0].items():
-                    pdf.cell(120, 20, txt = "{} : {}".format(key, value), 
-                             ln = 1, align = 'L')
+                    pdf.write(18, txt = "{} : {}".format(key, value))
+                    pdf.ln()
                 
                 pdf_byte_str = pdf.output(dest='S').encode('latin-1')
                 buffer_resp = BytesIO(bytes(pdf_byte_str))
@@ -287,10 +287,14 @@ def plot(**kwargs):
                                                              time_described))
 
         # convert to pandas series to keep date information
-        time_axis = pd.DatetimeIndex(
-                            data_processed.coords[plot_conf['time_c']].values)
-        curve = pd.Series(data_processed[plot_type], 
-                          index=time_axis,
+        if (type(data_processed.indexes[plot_conf['time_c']]) is 
+            pd.core.indexes.datetimes.DatetimeIndex) :
+            time_axis = data_processed.indexes[plot_conf['time_c']].values
+        else:
+            time_axis = data_processed.indexes[plot_conf['time_c']].to_datetimeindex()
+
+        curve = pd.Series(np.nan_to_num(data_processed[plot_type]), 
+                          index=pd.DatetimeIndex(time_axis),
                           name=model )
 
         # data visualisation, if pdf is asked for,
@@ -307,8 +311,8 @@ def plot(**kwargs):
 
         else:
             observed = {"model": model,
-                        "x": time_axis.tolist(),
-                        "y": np.nan_to_num(data_processed[plot_type]).tolist(),
+                        "x": curve.index.tolist(),
+                        "y": curve.values.tolist(),
                    }
             json_output.append(observed)
 
