@@ -10,10 +10,12 @@ Created on Mon Aug  3 15:48:04 2020
 @author: vykozlov
 """
 
+import o3as.config as cfg
 import logging
 import numpy as np
 
 logger = logging.getLogger('__name__') #o3asplot
+logger.setLevel(cfg.log_level)
 
 def check_latitude_order(ds):
     """

@@ -10,11 +10,11 @@ Created on Sat June 30 23:47:51 2020
 """
 import numpy as np
 import os
-import o3as as o3as
 import pandas as pd
 import pkg_resources
 import xarray as xr
 import unittest
+from o3as import plothelpers as phlp
 
 class TestModelMethods(unittest.TestCase):
 
@@ -105,7 +105,7 @@ class TestModelMethods(unittest.TestCase):
         by checking that the directory in the pattern exists
         """
         model = self.kwargs['models'][0]
-        test_pattern = o3as.api.get_datafiles(model)
+        test_pattern = phlp.get_datafiles(model)
         print("[test_pattern]: {}".format(test_pattern))
         dir_name = os.path.dirname(test_pattern)
         self.assertTrue(os.path.isdir(dir_name))
@@ -116,7 +116,7 @@ class TestModelMethods(unittest.TestCase):
         Test that the returned dataset type is correct, xarray.Dataset
         """
         print(self.pattern)
-        ds = o3as.api.get_dataset(self.pattern)
+        ds = phlp.get_dataset(self.pattern)
         self.assertTrue(type(ds) is xr.Dataset)
 
 
@@ -125,7 +125,7 @@ class TestModelMethods(unittest.TestCase):
         Test that returned dataset values are the same as generated.
         """
         print(self.pattern)
-        ds = o3as.api.get_dataset(self.pattern)
+        ds = phlp.get_dataset(self.pattern)
         self.assertEqual(ds, self.o3ds)
 
         
@@ -133,7 +133,7 @@ class TestModelMethods(unittest.TestCase):
         """
         Test correctness of returned min/max dates
         """
-        date_min, date_max = o3as.api.get_date_range(self.o3ds)
+        date_min, date_max = phlp.get_date_range(self.o3ds)
         self.assertEqual(date_min, self.start_date)
         self.assertEqual(date_max, self.end_date)
 
@@ -143,7 +143,7 @@ class TestModelMethods(unittest.TestCase):
         Test correctness of returned periodicity
         """
         time_axis = pd.DatetimeIndex(self.o3ds.coords['time'].values)
-        period = o3as.api.get_periodicity(time_axis)
+        period = phlp.get_periodicity(time_axis)
         self.assertEqual(period, 12)
 
 if __name__ == '__main__':

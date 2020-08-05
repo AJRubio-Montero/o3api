@@ -33,7 +33,7 @@ paths:
           items:
             type: string
           description: Names of models (dataset-model)
-          default: [ecmwf-era,ccmi-mocage,ccmi-umukca-ucam]
+          default: [ecmwf-era-interim,ccmi1-mocage,ccmi1-umukca-ucam]
           required: true
         - name: begin_year
           in: query
