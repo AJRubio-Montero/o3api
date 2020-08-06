@@ -91,11 +91,13 @@ class TestModelMethods(unittest.TestCase):
         """
         Test that metadata contains right values (subset)
         """
+        emails = "tobias.kerzenmacher@kit.edu,\
+        borja.sanchis@kit.edu, valentin.kozlov@kit.edu"
         self.assertEqual(self.meta['name'].replace('-','_'),
                         'o3as'.replace('-','_'))
         self.assertEqual(self.meta['author'], 'KIT-IMK')
-        self.assertEqual(self.meta['author-email'].lower(), 
-                         'tobias.kerzenmacher@kit.edu'.lower())
+        self.assertEqual(self.meta['author-email'].lower().replace(' ',''), 
+                         emails.lower().replace(' ',''))
         self.assertEqual(self.meta['license'], 'GNU LGPLv3')
 
 

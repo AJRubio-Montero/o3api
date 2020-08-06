@@ -21,6 +21,7 @@ import logging
 import matplotlib.pyplot as plt
 import numpy as np
 
+import pkg_resources
 import pandas as pd
 import time
 
@@ -89,6 +90,35 @@ def _catch_error(f):
 
     return wrap
 
+@_catch_error
+def o3as_info(**kwargs):
+    """Return information about API
+    :return: json with info
+    """
+    module = __name__.split('.', 1)
+    pkg = pkg_resources.get_distribution(module[0])
+    meta = {
+        'name' : None,
+        'version' : None,
+        'summary' : None,
+        'home-page' : None,
+        'author' : None,
+        'author-email' : None,
+        'license' : None
+    }
+    iline = 0
+    top_lines = 10 # take only top 10 lines (otherwise may pick from content)
+    for line in pkg.get_metadata_lines("PKG-INFO"):
+        line_low = line.lower() # to avoid inconsistency due to letter cases
+        if iline < top_lines:
+            for par in meta:
+                if line_low.startswith(par.lower() + ":", 0):
+                    _, value = line.split(": ", 1)
+                    meta[par] = value
+        iline += 1
+    
+    logger.debug(F"Found metadata: {meta}")    
+    return meta
 
 @flaat.login_required() # Require only authorized people to call api method   
 @_catch_error
@@ -104,8 +134,8 @@ def plot(**kwargs):
     plot_type = kwargs[pconf['plot_t']]
     models = kwargs['models']
 
-    logger.debug("headers: {}".format(dict(request.headers)))
-    logger.debug("models: {}".format(models))
+    logger.debug(F"headers: {dict(request.headers)}")
+    logger.debug(F"models: {models}")
     
     if request.headers['Accept'] == "application/pdf":
         fig = plt.figure(num=None, figsize=(pconf[plot_type]['fig_size']), 
@@ -119,7 +149,7 @@ def plot(**kwargs):
         time_model = time.time()
         # strip possible spaces in front and back
         model = model.lstrip().rstrip()
-        logger.debug("model = {}".format(model))
+        logger.debug(F"model = {model}")
         
         # get list of files for the model
         data_files = phlp.get_datafiles(model)

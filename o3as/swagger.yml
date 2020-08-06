@@ -5,21 +5,36 @@ info:
   title: Swagger REST o3as
 consumes:
   - "application/json"
-produces:
-  - "application/pdf"
-  - "application/json"
 
 basePath: "/api"
 
 # Paths supported by the server application
 paths:
+  /o3as_info:
+    post:
+      operationId: "o3as.api.o3as_info"
+      tags:
+        - "o3as_info"
+      summary: "Returning information about the service"
+      description: "Return O3as info"
+      produces:
+        - "application/json"
+      responses:
+        200:
+          description: "Successfully returned O3as information"
+          schema:
+            $ref: '#/definitions/Info'
+
   /plot:
     post:
       operationId: "o3as.api.plot"
       tags:
         - "plot"
-      summary: "The a plot supported by the server application"
-      description: "Create a plot"
+      summary: "Making a plot supported by the server application"
+      description: "Create a plot (tco, ...)"
+      produces:
+        - "application/pdf"
+        - "application/json"
       parameters:
         - name: type
           in: query
@@ -83,3 +98,20 @@ definitions:
           type: array
   Error:
     type: string
+  Info:
+    type: object
+    properties:
+      author:
+        type: string
+      author-email:
+        type: string
+      home-page:
+        type: string
+      license:
+        type: string
+      name:
+        type: string
+      summary:
+        type: string
+      version:
+        type: string
