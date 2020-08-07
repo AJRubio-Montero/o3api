@@ -14,6 +14,7 @@ import pandas as pd
 import pkg_resources
 import xarray as xr
 import unittest
+from o3as import config as cfg
 from o3as import plothelpers as phlp
 
 class TestModelMethods(unittest.TestCase):
@@ -58,10 +59,11 @@ class TestModelMethods(unittest.TestCase):
         end_year = np.datetime64('today', 'Y').astype(int) + 1970
         begin_year = end_year - delta_years
 
-        self.data_base_path = "tmp/data"
-        os.environ["O3AS_DATA_BASE_PATH"] = self.data_base_path
+        data_base_path = "tmp/data"
+        #os.environ["O3AS_DATA_BASEPATH"] = self.data_base_path
+        cfg.O3AS_DATA_BASEPATH = data_base_path
         model = "o3as-test"
-        test_dir = os.path.join(self.data_base_path, model) 
+        test_dir = os.path.join(data_base_path, model) 
         self.pattern=os.path.join(test_dir, "*_skim-*.nc")
         test_path  = os.path.join(test_dir, model + "_skim-" + 
                                             str(end_year) + ".nc")

@@ -25,15 +25,12 @@ pconf = cfg.plot_conf
 def get_datafiles(model):
     """Return pattern for files corresponding to the model
     :param model: model name, also used to define path where to look for files,
-          e.g. as O3AS_DATA_BASE_PATH/model
+          e.g. as O3AS_DATA_BASEPATH/model
     :type model: string
     :return: pattern for files
     """
-    # where to look for files. 
-    # Default is /srv/o3as/data/ + model but
-    # one can change to $DATA_BASE_PATH + model
-    data_base_path = os.getenv('O3AS_DATA_BASE_PATH', "/srv/o3as/data/")
-    data_path = os.path.join(data_base_path, model)
+    # where to look for files.
+    data_path = os.path.join(cfg.O3AS_DATA_BASEPATH, model)
 
     return os.path.join(data_path,"*_skim-*.nc")
 

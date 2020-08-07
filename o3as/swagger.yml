@@ -10,11 +10,11 @@ basePath: "/api"
 
 # Paths supported by the server application
 paths:
-  /o3as_info:
+  /get_metadata:
     post:
-      operationId: "o3as.api.o3as_info"
+      operationId: "o3as.api.get_metadata"
       tags:
-        - "o3as_info"
+        - "get_metadata"
       summary: "Returning information about the service"
       description: "Return O3as info"
       produces:
@@ -23,8 +23,42 @@ paths:
         200:
           description: "Successfully returned O3as information"
           schema:
-            $ref: '#/definitions/Info'
-
+            $ref: '#/definitions/MetaInfo'
+  /get_model_info:
+    post:
+      operationId: "o3as.api.get_model_info"
+      tags:
+        - "get_model_info"
+      summary: "Returning information about a model"
+      description: "Return model info"
+      produces:
+        - "application/json"
+      parameters:
+        - name: model
+          in: query
+          type: string
+          description: model name
+          default: ecmwf-era-interim
+          required: true
+      responses:
+        200:
+          description: "Successfully returned model information"
+          schema:
+            $ref: '#/definitions/ModelInfo'
+  /list_models:
+    post:
+      operationId: "o3as.api.list_models"
+      tags:
+        - "list_models"
+      summary: "Returning list of available models"
+      description: "Return list of models"
+      produces:
+        - "application/json"
+      responses:
+        200:
+          description: "Successfully returned list of models"
+          schema:
+            $ref: '#/definitions/ListModels'
   /plot:
     post:
       operationId: "o3as.api.plot"
@@ -98,7 +132,7 @@ definitions:
           type: array
   Error:
     type: string
-  Info:
+  MetaInfo:
     type: object
     properties:
       author:
@@ -114,4 +148,22 @@ definitions:
       summary:
         type: string
       version:
+        type: string
+  ListModels:
+    type: object
+    properties:
+      models:
+        type: array
+        items:
+          type: string
+  ModelInfo:
+    type: object
+    properties:
+      name:
+        type: string
+      attrs:
+        type: string
+      dims:
+        type: string
+      coords:
         type: string

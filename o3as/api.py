@@ -17,10 +17,12 @@
 
 import o3as.config as cfg
 import o3as.plothelpers as phlp
+import json
 import logging
 import matplotlib.pyplot as plt
 import numpy as np
 
+import os
 import pkg_resources
 import pandas as pd
 import time
@@ -91,7 +93,7 @@ def _catch_error(f):
     return wrap
 
 @_catch_error
-def o3as_info(**kwargs):
+def get_metadata(*args, **kwargs):
     """Return information about API
     :return: json with info
     """
@@ -120,9 +122,50 @@ def o3as_info(**kwargs):
     logger.debug(F"Found metadata: {meta}")    
     return meta
 
+@_catch_error
+def list_models(*args, **kwargs):
+    """Return list of available models
+    :return: list of models
+    """
+    models = []
+    for mdir in os.listdir(cfg.O3AS_DATA_BASEPATH):
+        m_path = os.path.join(cfg.O3AS_DATA_BASEPATH, mdir) 
+        if (os.path.isdir(m_path)):
+            netcdf_ok = False
+            for f in os.listdir(m_path):
+                if ".nc" in f:
+                    netcdf_ok = True
+            models.append(mdir) if netcdf_ok else ''
+    
+    models.sort()
+    models_dict = { "models": models }
+    logger.debug(F"Model list: {models_dict}")
+
+    return models_dict
+
+@_catch_error
+def get_model_info(*args, **kwargs):
+    """Return information about a model
+    :return: info about a model
+    """
+    model = kwargs['model'].lstrip().rstrip()
+
+    # get list of files for the model
+    data_files = phlp.get_datafiles(model)    
+
+    # create dataset using xarray
+    ds = phlp.get_dataset(data_files)
+      
+    info_dict = ds.to_dict(data=False)
+    info_dict['model'] = model
+
+    logger.debug(F"{model} model info: {info_dict}")
+    return info_dict
+
+
 @flaat.login_required() # Require only authorized people to call api method   
 @_catch_error
-def plot(**kwargs):
+def plot(*args, **kwargs):
     """Main plotting routine
     :param kwargs: provided in the API call parameters
     :return: either PDF plot or JSON document

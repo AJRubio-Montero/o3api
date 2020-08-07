@@ -9,9 +9,15 @@ Created on Wed Aug  5 09:53:40 2020
 @author: vykozlov
 """
 import logging
+import os
 
 # logging level accross various scripts
 log_level = logging.DEBUG
+
+# Base path for data
+# Default is /srv/o3as/data/
+# But one can change using environment $O3AS_DATA_BASEPATH
+O3AS_DATA_BASEPATH = os.getenv('O3AS_DATA_BASEPATH', "/srv/o3as/data/")
 
 # list of trusted OIDC providers
 trusted_OP_list = [

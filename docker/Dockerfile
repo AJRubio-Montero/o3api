@@ -42,7 +42,7 @@ WORKDIR /srv
 RUN git clone --depth 1 -b $branch https://git.scc.kit.edu/synergy.o3as/o3as.git && \
 # Install o3as
     cd o3as && \
-    pip3 install --no-cache-dir -r requirements.txt && \
+    pip3 install --no-cache-dir -e . && \
     pip3 install --no-cache-dir gunicorn && \
 # Clean up
     rm -rf /root/.cache/pip/* && \
