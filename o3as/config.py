@@ -45,7 +45,7 @@ trusted_OP_list = [
 plot_conf = {
     'plot_t': 'type',
     'time_c': 'time',
-    'tco': {
+    'tco3_zm': {
         'fig_size': [9, 6],
         'inputs' : ['begin_year', 'end_year', 'lat_min', 'lat_max']
         }

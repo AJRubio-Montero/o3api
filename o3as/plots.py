@@ -23,8 +23,8 @@ def check_latitude_order(ds):
     :param ds: xarray dataset to check
     :return: lat_0, lat_last
     """
-    lat_0 = np.amin(ds.coords['latitude'].values[0])
-    lat_last = np.amax(ds.coords['latitude'].values[-1])
+    lat_0 = np.amin(ds.coords['lat'].values[0]) # latitude
+    lat_last = np.amax(ds.coords['lat'].values[-1]) # latitude
 
     return lat_0, lat_last
 
@@ -57,19 +57,19 @@ def process_for_tco(**kwargs):
     # BUG(?) ccmi-umukca-ucam complains about 31-12-year, but 30-12-year works
     ds_period = ds.sel(time=slice("{}-01-01T00:00:00".format(b_year), 
                                   "{}-12-30T23:59:59".format(e_year)),
-                       latitude=slice(lat_a,
-                                      lat_b))
+                       lat=slice(lat_a,
+                                 lat_b))  # latitude
     try:
-        o3_tco = ds_period[["tco"]]
+        o3_tco = ds_period[["tco3_zm"]]
     except:
         ds_w_tco = ds_period.assign(tco=((ds_period.o3/ds_period.t)
                                          *ds_period.level)*1.45e+6)
                                          # 0.724637681159e+19
-        ds_tco = ds_w_tco[["tco"]]
+        ds_tco = ds_w_tco[["tco3_zm"]]
 
         # Selection phase: calculate tco over column:
         o3_tco = ds_tco.integrate('level')
 
     logger.debug("o3_tco: {}".format(o3_tco))
     
-    return o3_tco.mean(dim=['latitude'])
+    return o3_tco.mean(dim=['lat'])

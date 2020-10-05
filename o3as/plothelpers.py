@@ -32,7 +32,7 @@ def get_datafiles(model):
     # where to look for files.
     data_path = os.path.join(cfg.O3AS_DATA_BASEPATH, model)
 
-    return os.path.join(data_path,"*_skim-*.nc")
+    return os.path.join(data_path,"tco3_zm*_????.nc")
 
 
 def get_dataset(files):
@@ -48,7 +48,7 @@ def get_dataset(files):
     logger.debug("Chunk Size: {}".format(chunk_size))
 
     if chunk_size > 0:
-        ds = xr.open_mfdataset(files, chunks={'latitude': chunk_size },
+        ds = xr.open_mfdataset(files, chunks={'lat': chunk_size },
                                concat_dim=pconf['time_c'],
                                data_vars='minimal', coords='minimal',
                                parallel=True)
@@ -127,7 +127,7 @@ def process(**kwargs):
     plot_type = kwargs[pconf['plot_t']]
     data = kwargs['ds']
     
-    if plot_type == 'tco':
+    if plot_type == 'tco3_zm':
         data_processed = o3plots.process_for_tco(**kwargs)
     elif plot_type == 'xx':
         data_processed = data
