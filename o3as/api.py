@@ -10,13 +10,14 @@
 # level: index for pressure / altitude (e.g. hPa)
 # t: temperature
 # o3: ozone data
-# tco: total column ozone
+# tco3_zm: total column ozone, zonal mean
 
 # ToDo: improve Error handling, that Errors are correctly returned by API
 #       e.g. raise OSError("no files to open")
 
 import o3as.config as cfg
 import o3as.plothelpers as phlp
+import o3as.plots as o3plots
 import json
 import logging
 import matplotlib.pyplot as plt
@@ -202,7 +203,7 @@ def plot(*args, **kwargs):
         kwargs['ds'] = ds
         
         # process data according to the plot type
-        data_processed = phlp.process(**kwargs)
+        data_processed = o3plots.process(**kwargs)
  
         time_described = time.time()
         logger.debug("[TIME] Processing described: {}".format(time_described - 

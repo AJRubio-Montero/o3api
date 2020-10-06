@@ -12,23 +12,14 @@ Created on Mon Aug  3 15:48:04 2020
 
 import o3as.config as cfg
 import logging
-import numpy as np
+import o3as.plothelpers as phlp
 
 logger = logging.getLogger('__name__') #o3asplot
 logger.setLevel(cfg.log_level)
 
-def check_latitude_order(ds):
-    """
-    Function to check latitude order
-    :param ds: xarray dataset to check
-    :return: lat_0, lat_last
-    """
-    lat_0 = np.amin(ds.coords['lat'].values[0]) # latitude
-    lat_last = np.amax(ds.coords['lat'].values[-1]) # latitude
+pconf = cfg.plot_conf
 
-    return lat_0, lat_last
-
-def process_for_tco(**kwargs):
+def process_for_tco3_zm(**kwargs):
     """Data processing for TCO plot
     :param kwargs: provided in the API call parameters, expected: 
          ds: xarray dataset
@@ -45,7 +36,7 @@ def process_for_tco(**kwargs):
     lat_max = kwargs['lat_max']
 
     # check in what order latitude is used, e.g. (-90..90) or (90..-90)
-    lat_0, lat_last = check_latitude_order(ds)
+    lat_0, lat_last = phlp.check_latitude_order(ds)
     logger.debug("ds: lat_0 = {}, lat_last: {}".format(lat_0, lat_last))
     if lat_0 < lat_last:
         lat_a = lat_min
@@ -59,17 +50,30 @@ def process_for_tco(**kwargs):
                                   "{}-12-30T23:59:59".format(e_year)),
                        lat=slice(lat_a,
                                  lat_b))  # latitude
-    try:
-        o3_tco = ds_period[["tco3_zm"]]
-    except:
-        ds_w_tco = ds_period.assign(tco=((ds_period.o3/ds_period.t)
-                                         *ds_period.level)*1.45e+6)
-                                         # 0.724637681159e+19
-        ds_tco = ds_w_tco[["tco3_zm"]]
 
-        # Selection phase: calculate tco over column:
-        o3_tco = ds_tco.integrate('level')
+    o3_tco = ds_period[["tco3_zm"]]
 
     logger.debug("o3_tco: {}".format(o3_tco))
     
     return o3_tco.mean(dim=['lat'])
+    
+def process(**kwargs):
+    """Select data processing according to the plot type
+    :param kwargs: provided in the API call parameters
+    :return: processed data
+    """
+
+    plot_type = kwargs[pconf['plot_t']]
+    data = kwargs['ds']
+    
+    if plot_type == 'tco3_zm':
+        data_processed = process_for_tco3_zm(**kwargs)
+    elif plot_type == 'vmro3_zm':
+        data_processed = data
+    elif plot_type == 'tco3_return':
+        data_processed = data
+    else:
+        # should return something
+        data_processed = data
+
+    return data_processed

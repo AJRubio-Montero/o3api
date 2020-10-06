@@ -12,7 +12,6 @@ Created on Wed Aug  5 09:53:40 2020
 import o3as.config as cfg
 import logging
 import numpy as np
-import o3as.plots as o3plots
 import os
 import xarray as xr
 
@@ -88,6 +87,18 @@ def get_periodicity(pd_time):
     return int(round(periodicity, 0))
 
 
+def check_latitude_order(ds):
+    """
+    Function to check latitude order
+    :param ds: xarray dataset to check
+    :return: lat_0, lat_last
+    """
+    lat_0 = np.amin(ds.coords['lat'].values[0]) # latitude
+    lat_last = np.amax(ds.coords['lat'].values[-1]) # latitude
+
+    return lat_0, lat_last
+
+
 def set_plot_title(**kwargs):
     """Set plot title
     :param kwargs: provided in the API call parameters
@@ -117,22 +128,3 @@ def set_file_name(**kwargs):
 
     return file_name
 
-
-def process(**kwargs):
-    """Select data processing according to the plot type
-    :param kwargs: provided in the API call parameters
-    :return: processed data
-    """
-
-    plot_type = kwargs[pconf['plot_t']]
-    data = kwargs['ds']
-    
-    if plot_type == 'tco3_zm':
-        data_processed = o3plots.process_for_tco(**kwargs)
-    elif plot_type == 'xx':
-        data_processed = data
-    else:
-        # should return something
-        data_processed = data
-
-    return data_processed
