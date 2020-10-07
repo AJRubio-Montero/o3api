@@ -188,22 +188,22 @@ def plot(*args, **kwargs):
     else:
         fig_type = {"plot_type": plot_type}
         json_output.append(fig_type)
+
+    if plot_type == 'tco3_zm':
+        data = o3plots.ProcessForTCO3(**kwargs)
+    elif plot_type == 'vmro3_zm':
+        data = o3plots.ProcessForVMRO3(**kwargs)
+    elif plot_type == 'tco3_return':
+        data = o3plots.ProcessForTCO3Return(**kwargs)
                          
     for model in models:
         time_model = time.time()
         # strip possible spaces in front and back
         model = model.lstrip().rstrip()
         logger.debug(F"model = {model}")
-        
-        # get list of files for the model
-        data_files = phlp.get_datafiles(model)
-        
-        # create dataset using xarray
-        ds = phlp.get_dataset(data_files)
-        kwargs['ds'] = ds
-        
-        # process data according to the plot type
-        data_processed = o3plots.process(**kwargs)
+
+        # get data for the plot
+        data_processed = data.get_plot_data(model)
  
         time_described = time.time()
         logger.debug("[TIME] Processing described: {}".format(time_described - 

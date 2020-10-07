@@ -38,7 +38,7 @@ paths:
           in: query
           type: string
           description: model name
-          default: ecmwf-era-interim
+          default: CCMI-1_ACCESS-refC2
           required: true
       responses:
         200:
@@ -73,8 +73,8 @@ paths:
         - name: type
           in: query
           type: string
-          description: Plot type (tco, ...)
-          default: "tco"
+          description: Plot type (tco3_zm, vmro3_zm, ...)
+          default: "tco3_zm"
           required: true
         - name: models
           in: query
@@ -82,7 +82,7 @@ paths:
           items:
             type: string
           description: Names of models (dataset-model)
-          default: [ecmwf-era-interim,ccmi1-mocage,ccmi1-umukca-ucam]
+          default: [CCMI-1_ACCESS-refC2,CCMI-1_CCCma-CMAM-refC2,CCMI-1_CHASER-MIROC-ESM-refC2]
           required: true
         - name: begin_year
           in: query
