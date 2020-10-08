@@ -96,7 +96,9 @@ def _catch_error(f):
 @_catch_error
 def get_metadata(*args, **kwargs):
     """Return information about API
+
     :return: json with info
+    :rtype: dict
     """
     module = __name__.split('.', 1)
     pkg = pkg_resources.get_distribution(module[0])
@@ -126,7 +128,9 @@ def get_metadata(*args, **kwargs):
 @_catch_error
 def list_models(*args, **kwargs):
     """Return list of available models
+
     :return: list of models
+    :rtype: dict
     """
     models = []
     for mdir in os.listdir(cfg.O3AS_DATA_BASEPATH):
@@ -147,7 +151,9 @@ def list_models(*args, **kwargs):
 @_catch_error
 def get_model_info(*args, **kwargs):
     """Return information about a model
+
     :return: info about a model
+    :rtype: dict
     """
     model = kwargs['model'].lstrip().rstrip()
 
@@ -168,6 +174,7 @@ def get_model_info(*args, **kwargs):
 @_catch_error
 def plot(*args, **kwargs):
     """Main plotting routine
+
     :param kwargs: provided in the API call parameters
     :return: either PDF plot or JSON document
     """    
@@ -209,11 +216,6 @@ def plot(*args, **kwargs):
         logger.debug("[TIME] Processing described: {}".format(time_described - 
                                                               time_model))
 
-        data_processed.load()
-        time_loaded = time.time()
-        logger.debug("[TIME] Processing finished: {}".format(time_loaded -
-                                                             time_described))
-
         # convert to pandas series to keep date information
         if (type(data_processed.indexes[pconf['time_c']]) is 
             pd.core.indexes.datetimes.DatetimeIndex) :
@@ -244,6 +246,9 @@ def plot(*args, **kwargs):
                    }
             json_output.append(observed)
 
+        time_loaded = time.time()
+        logger.debug("[TIME] Processing finished: {}".format(time_loaded -
+                                                             time_model))
 
     # finally return either PDF plot
     # or JSON document

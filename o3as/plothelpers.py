@@ -21,7 +21,8 @@ pconf = cfg.plot_conf
 
 
 def get_date_range(ds):
-    """Return range of dates in the provided data
+    """Return range of dates in the provided dataset
+
     :param ds: xarray dataset to check
     :return: date_min, date_max
     """
@@ -33,7 +34,9 @@ def get_date_range(ds):
 
 def get_periodicity(pd_time):
     """Calculate periodicity in the provided data
-    :param pd_time: pandas DatetimeIndex
+
+    :param pd_time: time period
+    :type pd_time: pandas DatetimeIndex
     :return: calculated periodicity as number of points per year
     :rtype: int
     """
@@ -47,6 +50,7 @@ def get_periodicity(pd_time):
 
 def set_plot_title(**kwargs):
     """Set plot title
+
     :param kwargs: provided in the API call parameters
     :return: plot_title with added input parameters
     :rtype: string
@@ -63,6 +67,7 @@ def set_plot_title(**kwargs):
     
 def set_file_name(**kwargs):
     """Set file name
+
     :param kwargs: provided in the API call parameters
     :return: file_name with added input parameters (no extension given!)
     :rtype: string
@@ -73,4 +78,3 @@ def set_file_name(**kwargs):
         file_name += "_" + str(kwargs[par])
 
     return file_name
-
