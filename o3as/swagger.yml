@@ -34,6 +34,12 @@ paths:
       produces:
         - "application/json"
       parameters:
+        - name: type
+          in: query
+          type: string
+          description: Plot type (tco3_zm, vmro3_zm, ...)
+          default: "tco3_zm"
+          required: true
         - name: model
           in: query
           type: string

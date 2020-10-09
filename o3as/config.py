@@ -1,13 +1,11 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (c) 2017 - 2019 Karlsruhe Institute of Technology - Steinbuch Centre for Computing
-# This code is distributed under its License. Please, see the LICENSE file
+# Copyright (c) 2017 - 2020 Karlsruhe Institute of Technology - Steinbuch Centre for Computing
+# This code is distributed under the MIT License
+# Please, see the LICENSE file
 #
-"""
-Created on Wed Aug  5 09:53:40 2020
+# @author: vykozlov
 
-@author: vykozlov
-"""
 import logging
 import os
 

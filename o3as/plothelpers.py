@@ -1,13 +1,10 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (c) 2017 - 2019 Karlsruhe Institute of Technology - Steinbuch Centre for Computing
-# This code is distributed under its License. Please, see the LICENSE file
+# Copyright (c) 2017 - 2020 Karlsruhe Institute of Technology - Steinbuch Centre for Computing
+# This code is distributed under the MIT License
+# Please, see the LICENSE file
 #
-"""
-Created on Wed Aug  5 09:53:40 2020
-
-@author: vykozlov
-"""
+# @author: vykozlov
 
 import o3as.config as cfg
 import logging
@@ -21,7 +18,7 @@ pconf = cfg.plot_conf
 
 
 def get_date_range(ds):
-    """Return range of dates in the provided dataset
+    """Return the range of dates in the provided dataset
 
     :param ds: xarray dataset to check
     :return: date_min, date_max
@@ -35,9 +32,9 @@ def get_date_range(ds):
 def get_periodicity(pd_time):
     """Calculate periodicity in the provided data
 
-    :param pd_time: time period
+    :param pd_time: The time period
     :type pd_time: pandas DatetimeIndex
-    :return: calculated periodicity as number of points per year
+    :return: Calculated periodicity as the number of points per year
     :rtype: int
     """
     date_range = np.amax(pd_time) - np.amin(pd_time)
@@ -51,7 +48,7 @@ def get_periodicity(pd_time):
 def set_plot_title(**kwargs):
     """Set plot title
 
-    :param kwargs: provided in the API call parameters
+    :param kwargs: The provided in the API call parameters
     :return: plot_title with added input parameters
     :rtype: string
     """
@@ -65,10 +62,10 @@ def set_plot_title(**kwargs):
     return plot_title
 
     
-def set_file_name(**kwargs):
+def set_filename(**kwargs):
     """Set file name
 
-    :param kwargs: provided in the API call parameters
+    :param kwargs: The provided  in the API call parameters
     :return: file_name with added input parameters (no extension given!)
     :rtype: string
     """

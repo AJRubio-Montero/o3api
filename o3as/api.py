@@ -1,19 +1,29 @@
 #!/usr/bin/env python3
 #
+# -*- coding: utf-8 -*-
+#
+# Copyright (c) 2017 - 2020 Karlsruhe Institute of Technology - Steinbuch Centre for Computing
+# This code is distributed under the MIT License
+# Please, see the LICENSE file
+#
+# @author: vykozlov
+#
 # Script to process selected data and 
 # return either PDF plot or JSON document.
 # Used to build REST API.
 #
 ## Ozone related information: ##
-# latitude: index for geolocation
 # time: index for time (e.g. hours since start time - 6 hourly spacing)
+# lat: latitude index for geolocation
 # level: index for pressure / altitude (e.g. hPa)
 # t: temperature
 # o3: ozone data
 # tco3_zm: total column ozone, zonal mean
+# ...
 
 # ToDo: improve Error handling, that Errors are correctly returned by API
 #       e.g. raise OSError("no files to open")
+
 
 import o3as.config as cfg
 import o3as.plothelpers as phlp
@@ -95,9 +105,9 @@ def _catch_error(f):
 
 @_catch_error
 def get_metadata(*args, **kwargs):
-    """Return information about API
+    """Return information about the package
 
-    :return: json with info
+    :return: The o3as package info
     :rtype: dict
     """
     module = __name__.split('.', 1)
@@ -127,9 +137,9 @@ def get_metadata(*args, **kwargs):
 
 @_catch_error
 def list_models(*args, **kwargs):
-    """Return list of available models
+    """Return the list of available Ozone models
 
-    :return: list of models
+    :return: The list of available models
     :rtype: dict
     """
     models = []
@@ -150,18 +160,17 @@ def list_models(*args, **kwargs):
 
 @_catch_error
 def get_model_info(*args, **kwargs):
-    """Return information about a model
+    """Return information about the Ozone model
 
-    :return: info about a model
+    :return: Info about the Ozone model
     :rtype: dict
     """
+    plot_type = kwargs['type']
     model = kwargs['model'].lstrip().rstrip()
 
-    # get list of files for the model
-    data_files = phlp.get_datafiles(model)    
-
-    # create dataset using xarray
-    ds = phlp.get_dataset(data_files)
+    # create dataset according to the plot type (tco3_zm, vmro3_zm, etc)
+    data = o3plots.Dataset(plot_type, **kwargs)
+    ds = data.get_dataset(model)
       
     info_dict = ds.to_dict(data=False)
     info_dict['model'] = model
@@ -175,8 +184,8 @@ def get_model_info(*args, **kwargs):
 def plot(*args, **kwargs):
     """Main plotting routine
 
-    :param kwargs: provided in the API call parameters
-    :return: either PDF plot or JSON document
+    :param kwargs: The provided in the API call parameters
+    :return: Either PDF plot or JSON document
     """    
     time_start = time.time()
 
@@ -196,13 +205,9 @@ def plot(*args, **kwargs):
         fig_type = {"plot_type": plot_type}
         json_output.append(fig_type)
 
-    if plot_type == 'tco3_zm':
-        data = o3plots.ProcessForTCO3(**kwargs)
-    elif plot_type == 'vmro3_zm':
-        data = o3plots.ProcessForVMRO3(**kwargs)
-    elif plot_type == 'tco3_return':
-        data = o3plots.ProcessForTCO3Return(**kwargs)
-                         
+    # set how to process data (tco3_zm, vmro3_zm, etc)
+    data = o3plots.set_data_processing(plot_type, **kwargs)
+
     for model in models:
         time_model = time.time()
         # strip possible spaces in front and back
@@ -253,7 +258,7 @@ def plot(*args, **kwargs):
     # finally return either PDF plot
     # or JSON document
     if request.headers['Accept'] == "application/pdf":
-        figure_file = phlp.set_file_name(**kwargs) + ".pdf"
+        figure_file = phlp.set_filename(**kwargs) + ".pdf"
         plt.title(phlp.set_plot_title(**kwargs))
         plt.legend()
         buffer_plot = BytesIO()  # store in IO buffer, not a file
