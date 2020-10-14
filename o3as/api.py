@@ -38,6 +38,10 @@ import pkg_resources
 import pandas as pd
 import time
 
+import cProfile
+import io
+import pstats
+
 from flask import send_file
 from flask import jsonify, make_response, request
 from fpdf import FPDF
@@ -60,6 +64,24 @@ flaat.set_trusted_OP_list(cfg.trusted_OP_list)
 # configuration for plotting
 pconf = cfg.plot_conf
 
+
+def _profile(func):
+    """Decorate function for profiling
+    """
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        pr = cProfile.Profile()
+        pr.enable()
+        retval = func(*args, **kwargs)
+        pr.disable()
+        s = io.StringIO()
+        sortby = 'cumulative' #SortKey.CUMULATIVE  # 'cumulative'
+        ps = pstats.Stats(pr, stream=s).sort_stats(sortby)
+        ps.print_stats()
+        print(s.getvalue())
+        return retval
+
+    return wrapper
 
 def _catch_error(f):
     """Decorate function to return an error, in case
@@ -178,7 +200,7 @@ def get_model_info(*args, **kwargs):
     logger.debug(F"{model} model info: {info_dict}")
     return info_dict
 
-
+#@_profile
 @flaat.login_required() # Require only authorized people to call api method   
 @_catch_error
 def plot(*args, **kwargs):
@@ -186,24 +208,25 @@ def plot(*args, **kwargs):
 
     :param kwargs: The provided in the API call parameters
     :return: Either PDF plot or JSON document
-    """    
+    """
     time_start = time.time()
 
     json_output = []
+    json_append = json_output.append
 
     plot_type = kwargs[pconf['plot_t']]
     models = kwargs['models']
 
     logger.debug(F"headers: {dict(request.headers)}")
     logger.debug(F"models: {models}")
-    
+
     if request.headers['Accept'] == "application/pdf":
         fig = plt.figure(num=None, figsize=(pconf[plot_type]['fig_size']), 
                          dpi=150, facecolor='w', 
                          edgecolor='k')
     else:
         fig_type = {"plot_type": plot_type}
-        json_output.append(fig_type)
+        json_append(fig_type)
 
     # set how to process data (tco3_zm, vmro3_zm, etc)
     data = o3plots.set_data_processing(plot_type, **kwargs)
@@ -231,7 +254,7 @@ def plot(*args, **kwargs):
         curve = pd.Series(np.nan_to_num(data_processed[plot_type]), 
                           index=pd.DatetimeIndex(time_axis),
                           name=model )
-
+                          
         # data visualisation, if pdf is asked for,
         # or add data points as json
         if request.headers['Accept'] == "application/pdf":
@@ -249,7 +272,7 @@ def plot(*args, **kwargs):
                         "x": curve.index.tolist(),
                         "y": curve.values.tolist(),
                    }
-            json_output.append(observed)
+            json_append(observed)
 
         time_loaded = time.time()
         logger.debug("[TIME] Processing finished: {}".format(time_loaded -
