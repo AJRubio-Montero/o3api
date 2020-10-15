@@ -22,10 +22,10 @@ spec:
         resources:
           requests:
             memory: "2Gi"
-            cpu: "1800m"
+            cpu: "2100m"
           limits:
             memory: "2.5Gi"
-            cpu: "2000m"
+            cpu: "2300m"
         ports:
         - containerPort: 5005
           name: port0
@@ -34,7 +34,7 @@ spec:
         #  effect: NoSchedule
         env:
         - name: O3AS_DATA_BASEPATH
-          value: /mnt/o3as-data
+          value: /mnt/o3as-data/Skimmed
         - name: O3AS_TIMEOUT
           value: "600"
         #  valueFrom: 

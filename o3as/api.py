@@ -209,29 +209,16 @@ def plot(*args, **kwargs):
     :param kwargs: The provided in the API call parameters
     :return: Either PDF plot or JSON document
     """
-    time_start = time.time()
+    
+    def __get_curve(data, model, plot_type):
+        """Function to get the curve for the model
+        
+        :param data: pointer to how process data
+        :param model: model to process
+        :return: curve
+        :rtype: pandas Series
+        """
 
-    json_output = []
-    json_append = json_output.append
-
-    plot_type = kwargs[pconf['plot_t']]
-    models = kwargs['models']
-
-    logger.debug(F"headers: {dict(request.headers)}")
-    logger.debug(F"models: {models}")
-
-    if request.headers['Accept'] == "application/pdf":
-        fig = plt.figure(num=None, figsize=(pconf[plot_type]['fig_size']), 
-                         dpi=150, facecolor='w', 
-                         edgecolor='k')
-    else:
-        fig_type = {"plot_type": plot_type}
-        json_append(fig_type)
-
-    # set how to process data (tco3_zm, vmro3_zm, etc)
-    data = o3plots.set_data_processing(plot_type, **kwargs)
-
-    for model in models:
         time_model = time.time()
         # strip possible spaces in front and back
         model = model.lstrip().rstrip()
@@ -240,47 +227,67 @@ def plot(*args, **kwargs):
         # get data for the plot
         data_processed = data.get_plot_data(model)
  
-        time_described = time.time()
-        logger.debug("[TIME] Processing described: {}".format(time_described - 
-                                                              time_model))
-
         # convert to pandas series to keep date information
-        if (type(data_processed.indexes[pconf['time_c']]) is 
+        if (type(data_processed.indexes['time']) is 
             pd.core.indexes.datetimes.DatetimeIndex) :
-            time_axis = data_processed.indexes[pconf['time_c']].values
+            time_axis = data_processed.indexes['time'].values
         else:
-            time_axis = data_processed.indexes[pconf['time_c']].to_datetimeindex()
+            time_axis = data_processed.indexes['time'].to_datetimeindex()
 
         curve = pd.Series(np.nan_to_num(data_processed[plot_type]), 
                           index=pd.DatetimeIndex(time_axis),
                           name=model )
-                          
-        # data visualisation, if pdf is asked for,
-        # or add data points as json
-        if request.headers['Accept'] == "application/pdf":
-            curve.plot()
-            periodicity = phlp.get_periodicity(time_axis)
-            logger.info("Data periodicity: {} points/year".format(periodicity))
-            decompose = seasonal_decompose(curve, period=periodicity)
-            trend = pd.Series(decompose.trend, 
-                              index=time_axis,
-                              name=model+" (trend)" )
-            trend.plot()
 
-        else:
-            observed = {"model": model,
-                        "x": curve.index.tolist(),
-                        "y": curve.values.tolist(),
+        time_described = time.time()
+        logger.debug("[TIME] One model processed: {}".format(time_described - 
+                                                             time_model))                          
+        return curve
+
+   
+    def __return_json(data, model, plot_type, json_output):
+        """Function to return JSON
+        """
+
+        curve = __get_curve(data, model, plot_type)
+        observed = {"model": model,
+                    "x": curve.index.tolist(),
+                    "y": curve.values.tolist(),
                    }
-            json_append(observed)
+        json_output.append(observed)
+        
 
-        time_loaded = time.time()
-        logger.debug("[TIME] Processing finished: {}".format(time_loaded -
-                                                             time_model))
+    def __return_pdf(data, model, plot_type):
+        """Function to return PDF plot
+        """
+        curve = __get_curve(data, model, plot_type)
+        curve.plot()
+        time_axis = curve.index
+        periodicity = phlp.get_periodicity(time_axis)
+        logger.info("Data periodicity: {} points/year".format(periodicity))
+        decompose = seasonal_decompose(curve, period=periodicity)
+        trend = pd.Series(decompose.trend, 
+                          index=time_axis,
+                          name=model+" (trend)" )
+        trend.plot()        
+        
 
-    # finally return either PDF plot
-    # or JSON document
+    plot_type = kwargs['type']
+    models = kwargs['models']
+    time_start = time.time()
+
+    logger.debug(F"headers: {dict(request.headers)}")
+    logger.debug(F"models: {models}")
+
+    # set how to process data (tco3_zm, vmro3_zm, etc)
+    data = o3plots.set_data_processing(plot_type, **kwargs)
+
     if request.headers['Accept'] == "application/pdf":
+        fig = plt.figure(num=None, figsize=(pconf[plot_type]['fig_size']), 
+                         dpi=150, facecolor='w',
+                         edgecolor='k')
+                         
+        [ __return_pdf(data, m, plot_type) for m in models ]
+
         figure_file = phlp.set_filename(**kwargs) + ".pdf"
         plt.title(phlp.set_plot_title(**kwargs))
         plt.legend()
@@ -293,11 +300,14 @@ def plot(*args, **kwargs):
                              as_attachment=True,
                              attachment_filename=figure_file,
                              mimetype='application/pdf')
-    else: 
-        #ToDo: should better differentiate json/pdf/anything
-        #request.headers['Accept'] == "application/json":
+    else:
+        json_output = []
+        fig_type = {"plot_type": plot_type}
+        json_output.append(fig_type)
+    
+        [ __return_json(data, m, plot_type, json_output) for m in models ]
+        
         response = json_output
-
 
     logger.info(
        "[TIME] Total time from getting the request: {}".format(time.time() -
