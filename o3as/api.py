@@ -209,9 +209,15 @@ def plot(*args, **kwargs):
     :param kwargs: The provided in the API call parameters
     :return: Either PDF plot or JSON document
     """
-    
+    plot_type = kwargs['type']
+    models = kwargs['models']
+    time_start = time.time()
+
+    logger.debug(F"headers: {dict(request.headers)}")
+    logger.info(F"kwargs: {kwargs}")
+
     def __get_curve(data, model, plot_type):
-        """Function to get the curve for the model
+        """Function to get curve for the model
         
         :param data: pointer to how process data
         :param model: model to process
@@ -225,7 +231,7 @@ def plot(*args, **kwargs):
         logger.debug(F"model = {model}")
 
         # get data for the plot
-        data_processed = data.get_plot_data(model)
+        data_processed = __get_plot_data(model)
  
         # convert to pandas series to keep date information
         if (type(data_processed.indexes['time']) is 
@@ -244,7 +250,7 @@ def plot(*args, **kwargs):
         return curve
 
    
-    def __return_json(data, model, plot_type, json_output):
+    def __return_json(data, model, plot_type):
         """Function to return JSON
         """
 
@@ -253,7 +259,7 @@ def plot(*args, **kwargs):
                     "x": curve.index.tolist(),
                     "y": curve.values.tolist(),
                    }
-        json_output.append(observed)
+        return observed
         
 
     def __return_pdf(data, model, plot_type):
@@ -271,15 +277,11 @@ def plot(*args, **kwargs):
         trend.plot()        
         
 
-    plot_type = kwargs['type']
-    models = kwargs['models']
-    time_start = time.time()
-
-    logger.debug(F"headers: {dict(request.headers)}")
-    logger.debug(F"models: {models}")
-
     # set how to process data (tco3_zm, vmro3_zm, etc)
     data = o3plots.set_data_processing(plot_type, **kwargs)
+    __get_plot_data = data.get_plot_data
+    json_output = []
+    __json_append = json_output.append
 
     if request.headers['Accept'] == "application/pdf":
         fig = plt.figure(num=None, figsize=(pconf[plot_type]['fig_size']), 
@@ -301,11 +303,11 @@ def plot(*args, **kwargs):
                              attachment_filename=figure_file,
                              mimetype='application/pdf')
     else:
-        json_output = []
+
         fig_type = {"plot_type": plot_type}
-        json_output.append(fig_type)
+        __json_append(fig_type)
     
-        [ __return_json(data, m, plot_type, json_output) for m in models ]
+        [ __json_append(__return_json(data, m, plot_type)) for m in models ]
         
         response = json_output
 

@@ -64,7 +64,7 @@ class Dataset:
         """Constructor method
         """
         self.plot_type = plot_type
-        self._data_pattern = self.plot_type + "_*.nc"
+        self._data_pattern = self.plot_type + "*.nc"
         self._datafiles = [] #None
 
     def __set_datafiles(self, model):

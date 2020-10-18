@@ -27,6 +27,8 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get install -y --no-install-recommends \
 # Install system updates and tools
         git \
+        nano \
+        procps \
 # Install system updates and tools
         python3-setuptools \
         python3-pip \
