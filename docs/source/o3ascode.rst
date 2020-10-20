@@ -3,7 +3,7 @@ Documentation for the Code
 
 .. automodule:: o3as
 
-O3as REST API provides access to O3as (Ozone assessment) data for plotting. 
+O3as REST API provides access to O3as (Ozone assessment) data for plotting and high-level analysis. 
 The API leverages `Swagger <https://swagger.io/>`_, 
 `Flask <https://pypi.org/project/Flask/>`_, and 
 `Connexion <https://pypi.org/project/connexion/>`_.
@@ -11,7 +11,7 @@ The API leverages `Swagger <https://swagger.io/>`_,
 api
 =========================
 
-Description of the O3as REST API methods:
+O3as REST API methods:
 
 .. automodule:: o3as.api
    :members:
@@ -19,7 +19,7 @@ Description of the O3as REST API methods:
 plots
 =========================
 
-Description of the O3as classes to extact data for plotting:
+O3as helper classes to extact data for plotting:
 
 .. automodule:: o3as.plots
    :members:
@@ -27,7 +27,7 @@ Description of the O3as classes to extact data for plotting:
 plothelpers
 =========================
 
-Description of the O3as help functions for plotting:
+O3as help functions to create figures:
 
 .. automodule:: o3as.plothelpers
    :members:
