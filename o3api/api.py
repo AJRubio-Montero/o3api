@@ -210,7 +210,7 @@ def plot(*args, **kwargs):
     :return: Either PDF plot or JSON document
     """
     plot_type = kwargs['type']
-    models = kwargs['models']
+    models = list(filter(None, kwargs['models'])) # remove empty elements
     time_start = time.time()
 
     logger.debug(F"headers: {dict(request.headers)}")
@@ -226,8 +226,8 @@ def plot(*args, **kwargs):
         """
 
         time_model = time.time()
-        # strip possible spaces in front and back
-        model = model.lstrip().rstrip()
+        # strip possible spaces in front and back, and then quotas
+        model = model.strip().strip('\"')
         logger.debug(F"model = {model}")
 
         # get data for the plot

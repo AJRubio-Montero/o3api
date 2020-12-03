@@ -71,7 +71,9 @@ class Dataset:
         """Set the list of corresponding datafiles
 
         :param model: The model to process
-        """        
+        """
+        # strip possible spaces in front and back, and then quotas
+        model = model.strip().strip('\"')
         self._datafiles = glob.glob(os.path.join(cfg.O3AS_DATA_BASEPATH, 
                                                  model, 
                                                  self._data_pattern))
@@ -122,6 +124,7 @@ class DataSelection(Dataset):
         super().__init__(plot_type, **kwargs)
         self.b_year = kwargs['begin_year']
         self.e_year = kwargs['end_year']
+        self.months = kwargs['months']
         self.lat_min = kwargs['lat_min']
         self.lat_max = kwargs['lat_max']
 
@@ -160,8 +163,12 @@ class DataSelection(Dataset):
         # select data according to the period and latitude
         # BUG(?) ccmi-umukca-ucam complains about 31-12-year, but 30-12-year works
         # CFTime360day date format has 30 days for every month???
-        ds_slice = ds.sel(time=slice("{}-01-01T00:00:00".format(self.b_year), 
-                                     "{}-12-30T23:59:59".format(self.e_year)),
+        # {}-01-01T00:00:00 .. {}-12-30T23:59:59
+        if len(self.months) > 0:
+            ds = ds.sel(time=ds.time.dt.month.isin(self.months))
+
+        ds_slice = ds.sel(time=slice("{}-01".format(self.b_year), 
+                                     "{}-12".format(self.e_year)),
                           lat=slice(lat_a,
                                     lat_b))  # latitude
                                      
