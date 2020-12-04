@@ -53,9 +53,21 @@ def set_plot_title(**kwargs):
     :rtype: string
     """
     plot_type = kwargs[pconf['plot_t']]
-    plot_title = plot_type + " (inputs: "
-    for par in pconf[plot_type]['inputs']:
-        plot_title += str(kwargs[par]) + ","
+    plot_title = (plot_type + ", years: (" + str(kwargs['begin_year']) + ", " +
+                  str(kwargs['end_year']) + ")")
+    if len(kwargs['months']) > 0:
+        plot_title += (", months: (")
+        for i in kwargs['months']:
+            plot_title += str(i) + "," 
+        plot_title = plot_title[:-1] + ")"
+    else:
+        plot_title += ", whole year"
+        
+    plot_title += (", latitudes: (" + str(kwargs['lat_min']) + ", " +
+                   str(kwargs['lat_max']) + ")")
+
+#    for par in pconf[plot_type]['inputs']:
+#        plot_title += str(kwargs[par]) + ","
 
     plot_title = plot_title[:-1] + ")" # replace last "," with ")"
     

@@ -114,6 +114,7 @@ class DataSelection(Dataset):
 
     :param b_year: Year to start data scanning from
     :param e_year: Year to finish data scanning
+    :param months: Months to select, if not a whole year
     :param lat_min: Minimum latitude to define the range (-90..90)
     :param lat_max: Maximum latitude to define the range (-90..90)
     """
@@ -129,15 +130,25 @@ class DataSelection(Dataset):
         self.lat_max = kwargs['lat_max']
 
     def __check_latitude_order(self, ds):
-        """Function to check the latitude order
+        """Function to check the latitude order, 
+        returns them correctly ordered
 
         :param ds: xarray dataset to check
         :return: lat_0, lat_last
         """
+        # check in what order latitude is used, e.g. (-90..90) or (90..-90)
         lat_0 = np.amin(ds.coords['lat'].values[0]) # min latitude
         lat_last = np.amax(ds.coords['lat'].values[-1]) # max latitude
+        logger.debug("ds: lat_0 = {}, lat_last: {}".format(lat_0, lat_last))
 
-        return lat_0, lat_last
+        if lat_0 < lat_last:
+            lat_a = self.lat_min
+            lat_b = self.lat_max
+        else:
+            lat_a = self.lat_max
+            lat_b = self.lat_min
+
+        return lat_a, lat_b
 
         
     def get_dataslice(self, model):
@@ -150,15 +161,9 @@ class DataSelection(Dataset):
         """
         ds = super().get_dataset(model)
         logger.info("Dataset is loaded from storage location: {}".format(ds))
-        # check in what order latitude is used, e.g. (-90..90) or (90..-90)
-        lat_0, lat_last = self.__check_latitude_order(ds)
-        logger.debug("ds: lat_0 = {}, lat_last: {}".format(lat_0, lat_last))
-        if lat_0 < lat_last:
-            lat_a = self.lat_min
-            lat_b = self.lat_max
-        else:
-            lat_a = self.lat_max
-            lat_b = self.lat_min
+        
+        # check in what order latitude is used, return them correspondently
+        lat_a, lat_b = self.__check_latitude_order(ds)
 
         # select data according to the period and latitude
         # BUG(?) ccmi-umukca-ucam complains about 31-12-year, but 30-12-year works
@@ -171,8 +176,19 @@ class DataSelection(Dataset):
                                      "{}-12".format(self.e_year)),
                           lat=slice(lat_a,
                                     lat_b))  # latitude
-                                     
         return ds_slice
+        
+    def get_1980slice(self, model):
+        """
+        """
+        ds = super().get_dataset(model)
+        # check in what order latitude is used, return them correspondently
+        lat_a, lat_b = self.__check_latitude_order(ds)
+        if len(self.months) > 0:
+            ds = ds.sel(time=ds.time.dt.month.isin(self.months))        
+        ds_1980 = ds.sel(time=slice("1980-01", "1980-12"), 
+                         lat=slice(lat_a, lat_b))  # latitude
+        return ds_1980
 
 
 class ProcessForTCO3(DataSelection):
@@ -190,10 +206,25 @@ class ProcessForTCO3(DataSelection):
         """
         # data selection according to time and latitude
         ds_slice = super().get_dataslice(model)
-        ds_tco3 = ds_slice[["tco3_zm"]]
+        ds_tco3 = ds_slice[["tco3_zm"]].mean(dim=['lat'])
         logger.debug("ds_tco3: {}".format(ds_tco3))
 
-        return ds_tco3.mean(dim=['lat'])
+        return ds_tco3
+
+    def get_ref1980(self, model):
+        """Process the model to get tco3_zm reference for 1980
+
+        :param model: The model to process for tco3_zm
+        :return: xarray dataset for 1980
+        :rtype: xarray        
+        """
+        # data selection according to 1980 and latitude
+        ds_slice = super().get_1980slice(model)
+        ds_tco3_1980 = ds_slice[["tco3_zm"]].mean(dim=['lat'])
+        #logger.debug("ds_tco3_1980: {}".format(ds_tco3_1980.to_dataframe()))
+        logger.debug("ds_tco3_1980: {}".format(ds_tco3_1980.to_dataframe().mean()))
+
+        return ds_tco3_1980
 
 
 class ProcessForVMRO3(DataSelection):

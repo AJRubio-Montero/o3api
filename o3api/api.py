@@ -210,11 +210,18 @@ def plot(*args, **kwargs):
     :return: Either PDF plot or JSON document
     """
     plot_type = kwargs['type']
-    models = list(filter(None, kwargs['models'])) # remove empty elements
+    models_kwargs = list(filter(None, kwargs['models'])) # remove empty elements
+    # strip possible spaces in front and back, and then quotas
+    models = [ m.strip().strip('\"') for m in models_kwargs ]
     time_start = time.time()
 
     logger.debug(F"headers: {dict(request.headers)}")
     logger.info(F"kwargs: {kwargs}")
+
+    # set how to process data (tco3_zm, vmro3_zm, etc)
+    data = o3plots.set_data_processing(plot_type, **kwargs)
+    __get_plot_data = data.get_plot_data
+    __get_ref1980 = data.get_ref1980
 
     def __get_curve(data, model, plot_type):
         """Function to get curve for the model
@@ -226,12 +233,11 @@ def plot(*args, **kwargs):
         """
 
         time_model = time.time()
-        # strip possible spaces in front and back, and then quotas
-        model = model.strip().strip('\"')
         logger.debug(F"model = {model}")
 
         # get data for the plot
         data_processed = __get_plot_data(model)
+        ref1980 = __get_ref1980(model)
  
         # convert to pandas series to keep date information
         if (type(data_processed.indexes['time']) is 
@@ -253,7 +259,6 @@ def plot(*args, **kwargs):
     def __return_json(data, model, plot_type):
         """Function to return JSON
         """
-
         curve = __get_curve(data, model, plot_type)
         observed = {"model": model,
                     "x": curve.index.tolist(),
@@ -266,35 +271,33 @@ def plot(*args, **kwargs):
         """Function to return PDF plot
         """
         curve = __get_curve(data, model, plot_type)
-        curve.plot()
+        #curve.plot()
         time_axis = curve.index
         periodicity = phlp.get_periodicity(time_axis)
         logger.info("Data periodicity: {} points/year".format(periodicity))
         decompose = seasonal_decompose(curve, period=periodicity)
         trend = pd.Series(decompose.trend, 
                           index=time_axis,
-                          name=model+" (trend)" )
+                          name=model) #+" (trend)"
         trend.plot()        
         
-
-    # set how to process data (tco3_zm, vmro3_zm, etc)
-    data = o3plots.set_data_processing(plot_type, **kwargs)
-    __get_plot_data = data.get_plot_data
-    json_output = []
-    __json_append = json_output.append
-
     if request.headers['Accept'] == "application/pdf":
         fig = plt.figure(num=None, figsize=(pconf[plot_type]['fig_size']), 
                          dpi=150, facecolor='w',
                          edgecolor='k')
+        plt.xlabel("Year")
+        plt.ylabel("tco3_zm (DU)")
                          
         [ __return_pdf(data, m, plot_type) for m in models ]
 
         figure_file = phlp.set_filename(**kwargs) + ".pdf"
         plt.title(phlp.set_plot_title(**kwargs))
-        plt.legend()
+        num_col = len(models) // 10 + 1
+        plt.legend(loc='lower center', bbox_to_anchor=[0., -0.6, 1.0, 0.5],
+                   ncol=num_col, fancybox=True, fontsize='small',
+                   borderaxespad=0.)
         buffer_plot = BytesIO()  # store in IO buffer, not a file
-        plt.savefig(buffer_plot, format='pdf')
+        plt.savefig(buffer_plot, format='pdf', bbox_inches='tight')
         plt.close(fig)
         buffer_plot.seek(0)
 
@@ -303,6 +306,8 @@ def plot(*args, **kwargs):
                              attachment_filename=figure_file,
                              mimetype='application/pdf')
     else:
+        json_output = []
+        __json_append = json_output.append
 
         fig_type = {"plot_type": plot_type}
         __json_append(fig_type)
