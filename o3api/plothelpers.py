@@ -9,6 +9,7 @@
 import o3api.config as cfg
 import logging
 import numpy as np
+import matplotlib.pyplot as plt
 
 # conigure python logger
 logger = logging.getLogger('__name__') #o3api
@@ -16,6 +17,20 @@ logger.setLevel(cfg.log_level)
 
 pconf = cfg.plot_conf
 
+
+def clean_models(**kwargs):
+    """Clean models from empty entries, spaces, and quotes
+
+    :param kwargs: The provided in the API call parameters
+    :return: models cleaned from empty entries, spaces, quotes
+    :rtype: list
+    """
+
+    models_kwargs = list(filter(None, kwargs['models'])) # remove empty elements
+    # strip possible spaces in front and back, and then quotas
+    models = [ m.strip().strip('\"') for m in models_kwargs ]
+    
+    return models
 
 def get_date_range(ds):
     """Return the range of dates in the provided dataset
@@ -53,24 +68,20 @@ def set_plot_title(**kwargs):
     :rtype: string
     """
     plot_type = kwargs[pconf['plot_t']]
-    plot_title = (plot_type + ", years: (" + str(kwargs['begin_year']) + ", " +
-                  str(kwargs['end_year']) + ")")
+    plot_title = ("requested: " + plot_type + ", " + 
+                  str(kwargs['begin_year']) + ".." + str(kwargs['end_year']))
     if len(kwargs['months']) > 0:
-        plot_title += (", months: (")
+        plot_title += (", month: ")
         for i in kwargs['months']:
             plot_title += str(i) + "," 
-        plot_title = plot_title[:-1] + ")"
+        #plot_title = plot_title[:-1] + ""
     else:
-        plot_title += ", whole year"
-        
-    plot_title += (", latitudes: (" + str(kwargs['lat_min']) + ", " +
-                   str(kwargs['lat_max']) + ")")
+        plot_title += ", full_year,"
 
-#    for par in pconf[plot_type]['inputs']:
-#        plot_title += str(kwargs[par]) + ","
+    deg_sign= u'\N{DEGREE SIGN}'
+    plot_title += (" latitudes: " + str(kwargs['lat_min']) + deg_sign + ".." +
+                   str(kwargs['lat_max']) + deg_sign)
 
-    plot_title = plot_title[:-1] + ")" # replace last "," with ")"
-    
     return plot_title
 
     
@@ -81,9 +92,43 @@ def set_filename(**kwargs):
     :return: file_name with added input parameters (no extension given!)
     :rtype: string
     """
-    plot_type = kwargs[pconf['plot_t']]
+    plot_type = kwargs['type']
     file_name = plot_type
     for par in pconf[plot_type]['inputs']:
-        file_name += "_" + str(kwargs[par])
+        if par == 'months' and len(kwargs[par]) == 0:
+            par_str = 'full_year'
+        else:
+            par_str = str(kwargs[par])
+            
+        file_name += "_" + par_str
 
     return file_name
+
+
+def set_figure_attr(fig, **kwargs):
+    """Configure the figure attributes
+
+    :param fig: Figure instance
+    :param kwargs: The provided  in the API call parameters
+    :return: none
+    """
+    plot_type = kwargs['type']
+    models = clean_models(**kwargs)
+
+    plt.xlabel(pconf[plot_type]['xlabel'], fontsize='large')
+    plt.ylabel(pconf[plot_type]['ylabel'], fontsize='large')
+    plt.title(set_plot_title(**kwargs),
+              fontsize='medium', color='gray')
+    num_col = len(models) // 12
+    num_col = num_col if (len(models) % 12 == 0) else num_col + 1
+    ax = plt.gca() # get axis instance
+    ax_pos = ax.get_position() # get the axes position 
+    plt.legend(loc='upper center', 
+               bbox_to_anchor=[0., ax_pos.y0-0.675, 0.99, 0.3],
+               ncol=num_col, fancybox=True, fontsize='small',
+               borderaxespad=0.)
+    fig.text(ax_pos.x0 + ax_pos.width - 0.01,
+             ax_pos.y0 + ax_pos.height - 0.01,
+             'Generated with o3as.data.kit.edu',
+             fontsize='medium', color='gray',
+             ha='right', va='top', alpha=0.5)

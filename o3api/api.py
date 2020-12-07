@@ -30,6 +30,8 @@ import o3api.plothelpers as phlp
 import o3api.plots as o3plots
 import json
 import logging
+import matplotlib.style as mplstyle
+mplstyle.use('fast') # faster?
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -47,7 +49,6 @@ from flask import jsonify, make_response, request
 from fpdf import FPDF
 from functools import wraps
 from io import BytesIO
-from statsmodels.tsa.seasonal import seasonal_decompose # accurate enough
 
 # conigure python logger
 logger = logging.getLogger('__name__') #o3api
@@ -123,6 +124,19 @@ def _catch_error(f):
             logger.debug("Response: {}".format(dict(response.headers)))
             return response
 
+    return wrap
+
+def _timeit(func):
+    """Measure time of the function
+    """
+    @wraps(func)
+    def wrap(*args, **kwargs):
+        time_model = time.time()
+        f = func(*args, **kwargs)
+        time_described = time.time()
+        logger.debug("[TIME] One model processed: {}".format(time_described - 
+                                                             time_model))
+        return f
     return wrap
 
 @_catch_error
@@ -210,9 +224,7 @@ def plot(*args, **kwargs):
     :return: Either PDF plot or JSON document
     """
     plot_type = kwargs['type']
-    models_kwargs = list(filter(None, kwargs['models'])) # remove empty elements
-    # strip possible spaces in front and back, and then quotas
-    models = [ m.strip().strip('\"') for m in models_kwargs ]
+    models = phlp.clean_models(**kwargs)
     time_start = time.time()
 
     logger.debug(F"headers: {dict(request.headers)}")
@@ -221,81 +233,48 @@ def plot(*args, **kwargs):
     # set how to process data (tco3_zm, vmro3_zm, etc)
     data = o3plots.set_data_processing(plot_type, **kwargs)
     __get_plot_data = data.get_plot_data
+    __plot_data = data.plot_data
     __get_ref1980 = data.get_ref1980
 
-    def __get_curve(data, model, plot_type):
-        """Function to get curve for the model
-        
-        :param data: pointer to how process data
-        :param model: model to process
-        :return: curve
-        :rtype: pandas Series
-        """
-
-        time_model = time.time()
-        logger.debug(F"model = {model}")
-
-        # get data for the plot
-        data_processed = __get_plot_data(model)
-        ref1980 = __get_ref1980(model)
- 
-        # convert to pandas series to keep date information
-        if (type(data_processed.indexes['time']) is 
-            pd.core.indexes.datetimes.DatetimeIndex) :
-            time_axis = data_processed.indexes['time'].values
-        else:
-            time_axis = data_processed.indexes['time'].to_datetimeindex()
-
-        curve = pd.Series(np.nan_to_num(data_processed[plot_type]), 
-                          index=pd.DatetimeIndex(time_axis),
-                          name=model )
-
-        time_described = time.time()
-        logger.debug("[TIME] One model processed: {}".format(time_described - 
-                                                             time_model))                          
-        return curve
-
-   
-    def __return_json(data, model, plot_type):
+    @_timeit
+    def __return_json(model):
         """Function to return JSON
+
+        :param model: model to process
+        :return: JSON with points (x,y)
         """
-        curve = __get_curve(data, model, plot_type)
+        curve = __get_plot_data(model)
         observed = {"model": model,
                     "x": curve.index.tolist(),
                     "y": curve.values.tolist(),
                    }
         return observed
-        
 
-    def __return_pdf(data, model, plot_type):
-        """Function to return PDF plot
+    @_timeit
+    def __return_plot(model):
+        """Function to draw the plot
+
+        :param model: model to process
         """
-        curve = __get_curve(data, model, plot_type)
-        #curve.plot()
-        time_axis = curve.index
-        periodicity = phlp.get_periodicity(time_axis)
-        logger.info("Data periodicity: {} points/year".format(periodicity))
-        decompose = seasonal_decompose(curve, period=periodicity)
-        trend = pd.Series(decompose.trend, 
-                          index=time_axis,
-                          name=model) #+" (trend)"
-        trend.plot()        
-        
+        __plot_data(model)
+
     if request.headers['Accept'] == "application/pdf":
+        figure_file = phlp.set_filename(**kwargs) + ".pdf"
         fig = plt.figure(num=None, figsize=(pconf[plot_type]['fig_size']), 
                          dpi=150, facecolor='w',
                          edgecolor='k')
-        plt.xlabel("Year")
-        plt.ylabel("tco3_zm (DU)")
-                         
-        [ __return_pdf(data, m, plot_type) for m in models ]
 
-        figure_file = phlp.set_filename(**kwargs) + ".pdf"
-        plt.title(phlp.set_plot_title(**kwargs))
-        num_col = len(models) // 10 + 1
-        plt.legend(loc='lower center', bbox_to_anchor=[0., -0.6, 1.0, 0.5],
-                   ncol=num_col, fancybox=True, fontsize='small',
-                   borderaxespad=0.)
+        [ __return_plot(m) for m in models ]
+
+        phlp.set_figure_attr(fig, **kwargs)
+
+        values1980 = [ __get_ref1980(m) for m in models ]
+        ref1980 = np.nanmean(values1980)
+        xmin, xmax = plt.xlim()
+        plt.hlines(ref1980, xmin, xmax, 
+                   colors='k', linestyles='dashed')
+        logger.debug(F"ref1980 values: {values1980} and the mean: {ref1980}")
+
         buffer_plot = BytesIO()  # store in IO buffer, not a file
         plt.savefig(buffer_plot, format='pdf', bbox_inches='tight')
         plt.close(fig)
@@ -312,12 +291,11 @@ def plot(*args, **kwargs):
         fig_type = {"plot_type": plot_type}
         __json_append(fig_type)
     
-        [ __json_append(__return_json(data, m, plot_type)) for m in models ]
+        [ __json_append(__return_json(m)) for m in models ]
         
         response = json_output
 
     logger.info(
        "[TIME] Total time from getting the request: {}".format(time.time() -
                                                                time_start))
-    
     return response

@@ -45,7 +45,9 @@ plot_conf = {
     'time_c': 'time',
     'tco3_zm': {
         'fig_size': [9, 6],
-        'inputs' : ['begin_year', 'end_year', 'lat_min', 'lat_max']
+        'inputs' : ['begin_year', 'end_year', 'months', 'lat_min', 'lat_max'],
+        'xlabel': 'Year',
+        'ylabel': 'tco3_zm (DU)'
         }
 }
 

@@ -9,8 +9,11 @@
 import glob
 import numpy as np
 import o3api.config as cfg
+import o3api.plothelpers as phlp
 import os
 import logging
+import pandas as pd
+from statsmodels.tsa.seasonal import seasonal_decompose # accurate enough
 import xarray as xr
 
 import cProfile
@@ -93,7 +96,6 @@ class Dataset:
         #                 to open and preprocess in parallel. Default is False
         self.__set_datafiles(model)
         chunk_size = int(os.getenv('O3API_CHUNK_SIZE', -1))
-        logger.debug("Chunk Size: {}".format(chunk_size))
 
         if chunk_size > 0:
             ds = xr.open_mfdataset(self._datafiles, chunks={'lat': chunk_size },
@@ -139,7 +141,6 @@ class DataSelection(Dataset):
         # check in what order latitude is used, e.g. (-90..90) or (90..-90)
         lat_0 = np.amin(ds.coords['lat'].values[0]) # min latitude
         lat_last = np.amax(ds.coords['lat'].values[-1]) # max latitude
-        logger.debug("ds: lat_0 = {}, lat_last: {}".format(lat_0, lat_last))
 
         if lat_0 < lat_last:
             lat_a = self.lat_min
@@ -147,6 +148,8 @@ class DataSelection(Dataset):
         else:
             lat_a = self.lat_max
             lat_b = self.lat_min
+
+        logger.debug(F"ds: (lat_0, lat_last) = ({lat_0}, {lat_last}) => ({lat_a}, {lat_b})")
 
         return lat_a, lat_b
 
@@ -196,20 +199,60 @@ class ProcessForTCO3(DataSelection):
     """
     def __init__(self, **kwargs):
         super().__init__('tco3_zm', **kwargs)
+        
+    def __to_pd_series(self, ds, model):
+        """Convert xarray to pandas series
+        
+        :param ds: xarray dataset
+        :param model: The model to process for tco3_zm
+        :return dataset as pandas series
+        :rtype: pandas series
+        """
+
+        # convert to pandas series to keep date information
+        if (type(ds.indexes['time']) is 
+            pd.core.indexes.datetimes.DatetimeIndex) :
+            time_axis = ds.indexes['time'].values
+        else:
+            time_axis = ds.indexes['time'].to_datetimeindex()
+
+        curve = pd.Series(np.nan_to_num(ds['tco3_zm']),
+                          index=pd.DatetimeIndex(time_axis),
+                          name=model)
+        return curve
 
     def get_plot_data(self, model):
         """Process the model to get tco3_zm data for plotting
 
         :param model: The model to process for tco3_zm
-        :return: xarray dataset for plotting
-        :rtype: xarray        
+        :return: curve for plotting
+        :rtype: pandas series (pd.Series)        
         """
         # data selection according to time and latitude
         ds_slice = super().get_dataslice(model)
         ds_tco3 = ds_slice[["tco3_zm"]].mean(dim=['lat'])
         logger.debug("ds_tco3: {}".format(ds_tco3))
 
-        return ds_tco3
+        curve = self.__to_pd_series(ds_tco3, model)
+
+        return curve
+        
+    def plot_data(self, model):
+        """Plot tco3_zm data as trend
+        :param model: The model to process for tco3_zm
+        :return: plot of the trend
+        """
+        
+        curve = self.get_plot_data(model)
+        time_axis = curve.index
+        print(F"[DEBUG] Type of curve.index: {type(time_axis)}, pd_time.size: {time_axis.size}")
+        periodicity = phlp.get_periodicity(time_axis)
+        logger.info("Data periodicity: {} points/year".format(periodicity))
+        decompose = seasonal_decompose(curve, period=periodicity)
+        trend = pd.Series(decompose.trend,
+                          index=time_axis,
+                          name=model) #+" (trend)"
+        trend.plot()
 
     def get_ref1980(self, model):
         """Process the model to get tco3_zm reference for 1980
@@ -222,9 +265,10 @@ class ProcessForTCO3(DataSelection):
         ds_slice = super().get_1980slice(model)
         ds_tco3_1980 = ds_slice[["tco3_zm"]].mean(dim=['lat'])
         #logger.debug("ds_tco3_1980: {}".format(ds_tco3_1980.to_dataframe()))
-        logger.debug("ds_tco3_1980: {}".format(ds_tco3_1980.to_dataframe().mean()))
+        ref1980 = ds_tco3_1980.to_dataframe().mean().values[0]
+        #logger.debug(F"ref1980: {ref1980}")
 
-        return ds_tco3_1980
+        return ref1980
 
 
 class ProcessForVMRO3(DataSelection):
