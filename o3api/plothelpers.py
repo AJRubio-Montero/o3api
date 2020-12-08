@@ -15,8 +15,21 @@ import matplotlib.pyplot as plt
 logger = logging.getLogger('__name__') #o3api
 logger.setLevel(cfg.log_level)
 
-pconf = cfg.plot_conf
+# configuration for netCDF
+TIME = cfg.netCDF_conf['t_c']
+LAT = cfg.netCDF_conf['lat_c']
 
+# configuration for API
+TYPE = cfg.api_conf['plot_t']
+MODEL = cfg.api_conf['model']
+BEGIN = cfg.api_conf['begin']
+END = cfg.api_conf['end']
+MONTH = cfg.api_conf['month']
+LAT_MIN = cfg.api_conf['lat_min']
+LAT_MAX = cfg.api_conf['lat_max']
+
+# configuration for plotting
+plot_c = cfg.plot_conf
 
 def clean_models(**kwargs):
     """Clean models from empty entries, spaces, and quotes
@@ -26,9 +39,9 @@ def clean_models(**kwargs):
     :rtype: list
     """
 
-    models_kwargs = list(filter(None, kwargs['models'])) # remove empty elements
+    model_kwargs = list(filter(None, kwargs[MODEL])) # remove empty elements
     # strip possible spaces in front and back, and then quotas
-    models = [ m.strip().strip('\"') for m in models_kwargs ]
+    models = [ m.strip().strip('\"') for m in model_kwargs ]
     
     return models
 
@@ -38,8 +51,8 @@ def get_date_range(ds):
     :param ds: xarray dataset to check
     :return: date_min, date_max
     """
-    date_min = np.amin(ds.coords[pconf['time_c']].values)
-    date_max = np.amax(ds.coords[pconf['time_c']].values)
+    date_min = np.amin(ds.coords[TIME].values)
+    date_max = np.amax(ds.coords[TIME].values)
 
     return date_min, date_max
 
@@ -67,20 +80,20 @@ def set_plot_title(**kwargs):
     :return: plot_title with added input parameters
     :rtype: string
     """
-    plot_type = kwargs[pconf['plot_t']]
+    plot_type = kwargs[TYPE]
     plot_title = ("requested: " + plot_type + ", " + 
-                  str(kwargs['begin_year']) + ".." + str(kwargs['end_year']))
-    if len(kwargs['months']) > 0:
+                  str(kwargs[BEGIN]) + ".." + str(kwargs[END]))
+    if len(kwargs[MONTH]) > 0:
         plot_title += (", month: ")
-        for i in kwargs['months']:
+        for i in kwargs[MONTH]:
             plot_title += str(i) + "," 
         #plot_title = plot_title[:-1] + ""
     else:
         plot_title += ", full_year,"
 
     deg_sign= u'\N{DEGREE SIGN}'
-    plot_title += (" latitudes: " + str(kwargs['lat_min']) + deg_sign + ".." +
-                   str(kwargs['lat_max']) + deg_sign)
+    plot_title += (" latitudes: " + str(kwargs[LAT_MIN]) + deg_sign + ".." +
+                   str(kwargs[LAT_MAX]) + deg_sign)
 
     return plot_title
 
@@ -92,15 +105,18 @@ def set_filename(**kwargs):
     :return: file_name with added input parameters (no extension given!)
     :rtype: string
     """
-    plot_type = kwargs['type']
-    file_name = plot_type
-    for par in pconf[plot_type]['inputs']:
-        if par == 'months' and len(kwargs[par]) == 0:
+    print("api_conf = ", cfg.api_conf)
+    file_name = ''
+    for val in cfg.api_conf.values():
+        if val == MONTH and len(kwargs[val]) == 0:
             par_str = 'full_year'
         else:
-            par_str = str(kwargs[par])
+            par_str = str(kwargs[val])
             
-        file_name += "_" + par_str
+        file_name += par_str + "_" if val != MODEL else ''
+
+    # delete last "_"
+    file_name = file_name[:-1] + ''
 
     return file_name
 
@@ -112,11 +128,11 @@ def set_figure_attr(fig, **kwargs):
     :param kwargs: The provided  in the API call parameters
     :return: none
     """
-    plot_type = kwargs['type']
+    plot_type = kwargs[TYPE]
     models = clean_models(**kwargs)
 
-    plt.xlabel(pconf[plot_type]['xlabel'], fontsize='large')
-    plt.ylabel(pconf[plot_type]['ylabel'], fontsize='large')
+    plt.xlabel(plot_c[plot_type]['xlabel'], fontsize='large')
+    plt.ylabel(plot_c[plot_type]['ylabel'], fontsize='large')
     plt.title(set_plot_title(**kwargs),
               fontsize='medium', color='gray')
     num_col = len(models) // 12

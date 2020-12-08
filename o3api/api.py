@@ -62,8 +62,18 @@ flaat = Flaat()
 # list of trusted OIDC providers
 flaat.set_trusted_OP_list(cfg.trusted_OP_list)
 
+# configuration for API
+# configuration for API
+TYPE = cfg.api_conf['plot_t']
+MODEL = cfg.api_conf['model']
+BEGIN = cfg.api_conf['begin']
+END = cfg.api_conf['end']
+MONTH = cfg.api_conf['month']
+LAT_MIN = cfg.api_conf['lat_min']
+LAT_MAX = cfg.api_conf['lat_max']
+
 # configuration for plotting
-pconf = cfg.plot_conf
+plot_c = cfg.plot_conf
 
 
 def _profile(func):
@@ -201,15 +211,15 @@ def get_model_info(*args, **kwargs):
     :return: Info about the Ozone model
     :rtype: dict
     """
-    plot_type = kwargs['type']
-    model = kwargs['model'].lstrip().rstrip()
+    plot_type = kwargs[TYPE]
+    model = kwargs[MODEL].lstrip().rstrip()
 
     # create dataset according to the plot type (tco3_zm, vmro3_zm, etc)
     data = o3plots.Dataset(plot_type, **kwargs)
     ds = data.get_dataset(model)
       
     info_dict = ds.to_dict(data=False)
-    info_dict['model'] = model
+    info_dict[MODEL] = model
 
     logger.debug(F"{model} model info: {info_dict}")
     return info_dict
@@ -223,7 +233,7 @@ def plot(*args, **kwargs):
     :param kwargs: The provided in the API call parameters
     :return: Either PDF plot or JSON document
     """
-    plot_type = kwargs['type']
+    plot_type = kwargs[TYPE]
     models = phlp.clean_models(**kwargs)
     time_start = time.time()
 
@@ -244,7 +254,7 @@ def plot(*args, **kwargs):
         :return: JSON with points (x,y)
         """
         curve = __get_plot_data(model)
-        observed = {"model": model,
+        observed = { MODEL: model,
                     "x": curve.index.tolist(),
                     "y": curve.values.tolist(),
                    }
@@ -260,7 +270,7 @@ def plot(*args, **kwargs):
 
     if request.headers['Accept'] == "application/pdf":
         figure_file = phlp.set_filename(**kwargs) + ".pdf"
-        fig = plt.figure(num=None, figsize=(pconf[plot_type]['fig_size']), 
+        fig = plt.figure(num=None, figsize=(plot_c[plot_type]['fig_size']), 
                          dpi=150, facecolor='w',
                          edgecolor='k')
 
@@ -271,8 +281,8 @@ def plot(*args, **kwargs):
         values1980 = [ __get_ref1980(m) for m in models ]
         ref1980 = np.nanmean(values1980)
         xmin, xmax = plt.xlim()
-        plt.hlines(ref1980, xmin, xmax, 
-                   colors='k', linestyles='dashed')
+        plt.hlines(ref1980, xmin, xmax, colors='k', # 'dimgray'..? 
+                   linestyles='dashed', zorder=256) # big zorder for above all 
         logger.debug(F"ref1980 values: {values1980} and the mean: {ref1980}")
 
         buffer_plot = BytesIO()  # store in IO buffer, not a file
@@ -288,7 +298,7 @@ def plot(*args, **kwargs):
         json_output = []
         __json_append = json_output.append
 
-        fig_type = {"plot_type": plot_type}
+        fig_type = { TYPE: plot_type}
         __json_append(fig_type)
     
         [ __json_append(__return_json(m)) for m in models ]

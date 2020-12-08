@@ -38,14 +38,30 @@ trusted_OP_list = [
 'https://proxy.demo.eduteams.org'
 ]
 
+# netCDF variable names and coodrinates
+netCDF_conf = {
+    'tco3'  : 'tco3_zm',
+    'vmro3' : 'vmro3_zm',
+    'tco3_r': 'tco_return',
+    't_c'   : 'time',
+    'lat_c' : 'lat'}
+
+# REST API parameters. See also swagger.yml (!)
+api_conf = {
+    'plot_t' : 'type',
+    'model'  : 'model',
+    'begin'  : 'begin',
+    'end'    : 'end',
+    'month'  : 'month',
+    'lat_min': 'lat_min',
+    'lat_max': 'lat_max'
+}
+
 # configuration for plotting
 # ToDo: use file?
 plot_conf = {
-    'plot_t': 'type',
-    'time_c': 'time',
-    'tco3_zm': {
+    netCDF_conf['tco3']: {
         'fig_size': [9, 6],
-        'inputs' : ['begin_year', 'end_year', 'months', 'lat_min', 'lat_max'],
         'xlabel': 'Year',
         'ylabel': 'tco3_zm (DU)'
         }

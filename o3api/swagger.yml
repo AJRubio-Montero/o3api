@@ -82,32 +82,32 @@ paths:
           description: Plot type (tco3_zm, vmro3_zm, ...)
           default: "tco3_zm"
           required: true
-        - name: models
+        - name: model
           in: query
           type: array
           items:
             type: string
-          description: Names of models (dataset-model)
+          description: Name(s) of model(s) (dataset-model)
           default: [CCMI-1_ACCESS-refC2,CCMI-1_CCCma-CMAM-refC2,CCMI-1_CHASER-MIROC-ESM-refC2]
           required: true
-        - name: begin_year
+        - name: begin
           in: query
           type: integer
           description: Year to start data scanning from
           default: 1979
           required: false
-        - name: end_year
+        - name: end
           in: query
           type: integer
           description: Year to finish data scanning
           default: 2019
           required: false
-        - name: months
+        - name: month
           in: query
           type: array
           items:
             type: integer
-          description: Months to select, if not a whole year
+          description: Month(s) to select, if not a whole year
           default: []
           required: false
         - name: lat_min
