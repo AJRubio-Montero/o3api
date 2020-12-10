@@ -7,12 +7,14 @@
 # @author: vykozlov
 
 import glob
+import matplotlib.pyplot as plt
 import numpy as np
 import o3api.config as cfg
 import o3api.plothelpers as phlp
 import os
 import logging
 import pandas as pd
+from scipy import signal
 from statsmodels.tsa.seasonal import seasonal_decompose # accurate enough
 import xarray as xr
 
@@ -161,8 +163,6 @@ class DataSelection(Dataset):
             lat_a = self.lat_max
             lat_b = self.lat_min
 
-        logger.debug(F"ds: (lat_0, lat_last) = ({lat_0}, {lat_last}) => ({lat_a}, {lat_b})")
-
         return lat_a, lat_b
 
         
@@ -237,11 +237,11 @@ class ProcessForTCO3(DataSelection):
                           name=model)
         return curve
 
-    def get_plot_data(self, model):
-        """Process the model to get tco3_zm data for plotting
+    def get_raw_data(self, model):
+        """Process the model to get tco3_zm raw data
 
         :param model: The model to process for tco3_zm
-        :return: curve for plotting
+        :return: raw data points in preparation for plotting
         :rtype: pandas series (pd.Series)        
         """
         # data selection according to time and latitude
@@ -249,27 +249,38 @@ class ProcessForTCO3(DataSelection):
         ds_tco3 = ds_slice[[TCO3]].mean(dim=[LAT])
         logger.debug("ds_tco3: {}".format(ds_tco3))
 
-        curve = self.__to_pd_series(ds_tco3, model)
+        data = self.__to_pd_series(ds_tco3, model)
 
-        return curve
+        return data
         
-    def plot_data(self, model):
+    def get_plot_data(self, model):
         """Plot tco3_zm data as trend
         :param model: The model to process for tco3_zm
         :return: plot of the trend
         """
         
-        curve = self.get_plot_data(model)
+        curve = self.get_raw_data(model)
         time_axis = curve.index
-        print(F"[DEBUG] Type of curve.index: {type(time_axis)}, pd_time.size: {time_axis.size}")
-        #periodicity = phlp.get_periodicity(time_axis)
-        #logger.info("Data periodicity: {} points/year".format(periodicity))
-        #decompose = seasonal_decompose(curve, period=periodicity)
-        #trend = pd.Series(decompose.trend,
-        #                  index=time_axis,
-        #                  name=model) #+" (trend)"
-        #trend.plot()
-        curve.plot()
+        curve_values = curve.values
+        boxcar_win = 3
+        boxcar = np.ones(boxcar_win)
+        boxcar_values = signal.convolve(curve_values, 
+                                        boxcar, 
+                                        mode='same')/np.sum(boxcar)
+        logger.debug("time_axis.shape = {}, boxcar_values.shape = {}"
+                     .format(time_axis.shape, boxcar_values.shape))
+        boxcar_values[0] = curve_values[0]
+        boxcar_values[-1] = curve_values[-1]
+        #boxcar_values[1] = curve_values[1]
+        #boxcar_values[-2] = curve_values[-2]
+        logger.debug(F"boxcar_values[:5]  : {boxcar_values[:5]}")
+        logger.debug(F"vs curve_values[:5]: {curve_values[:5]}")
+        logger.debug(F"boxcar_values[-5:]  : {boxcar_values[-5:]}")
+        logger.debug(F"vs curve_values[-5:]: {curve_values[-5:]}")
+        boxcar_smooth = pd.Series(boxcar_values,
+                                  index=time_axis,
+                                  name=model)
+        return boxcar_smooth
 
     def get_ref1980(self, model):
         """Process the model to get tco3_zm reference for 1980

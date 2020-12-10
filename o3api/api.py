@@ -241,8 +241,8 @@ def plot(*args, **kwargs):
 
     # set how to process data (tco3_zm, vmro3_zm, etc)
     data = o3plots.set_data_processing(plot_type, **kwargs)
+    __get_raw_data = data.get_raw_data
     __get_plot_data = data.get_plot_data
-    __plot_data = data.plot_data
     __get_ref1980 = data.get_ref1980
 
     @_timeit
@@ -252,7 +252,7 @@ def plot(*args, **kwargs):
         :param model: model to process
         :return: JSON with points (x,y)
         """
-        curve = __get_plot_data(model)
+        curve = __get_raw_data(model)
         observed = { MODEL: model,
                     "x": curve.index.tolist(),
                     "y": curve.values.tolist(),
@@ -265,7 +265,8 @@ def plot(*args, **kwargs):
 
         :param model: model to process
         """
-        __plot_data(model)
+        curve = __get_plot_data(model)
+        curve.plot()
 
     if request.headers['Accept'] == "application/pdf":
         figure_file = phlp.set_filename(**kwargs) + ".pdf"

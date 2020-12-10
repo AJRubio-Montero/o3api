@@ -14,6 +14,7 @@ import pandas as pd
 import pkg_resources
 import xarray as xr
 import pytest
+#import time
 import unittest
 from o3api import api as o3api
 from o3api import config as cfg
@@ -101,7 +102,8 @@ class TestPackageMethods(unittest.TestCase):
                                             str(end_year) + ".nc")
         os.makedirs(test_dir, exist_ok=True)
         self.o3ds.to_netcdf(test_path)
-        #self.o3ds.close()
+        self.o3ds.close()
+        #time.sleep(1) # wait untin file is written?
 
         self.kwargs = {
             PTYPE : ptype,
@@ -217,7 +219,7 @@ class TestPackageMethods(unittest.TestCase):
         
         self.assertEqual([lat_min, lat_max], [lat_0, lat_last])
 
-    def test_get_data_processed_type(self):
+    def test_get_plot_data_type(self):
         """
         Test that the returned dataset type is correct, pd.Series
         """
