@@ -262,13 +262,14 @@ class ProcessForTCO3(DataSelection):
         curve = self.get_plot_data(model)
         time_axis = curve.index
         print(F"[DEBUG] Type of curve.index: {type(time_axis)}, pd_time.size: {time_axis.size}")
-        periodicity = phlp.get_periodicity(time_axis)
-        logger.info("Data periodicity: {} points/year".format(periodicity))
-        decompose = seasonal_decompose(curve, period=periodicity)
-        trend = pd.Series(decompose.trend,
-                          index=time_axis,
-                          name=model) #+" (trend)"
-        trend.plot()
+        #periodicity = phlp.get_periodicity(time_axis)
+        #logger.info("Data periodicity: {} points/year".format(periodicity))
+        #decompose = seasonal_decompose(curve, period=periodicity)
+        #trend = pd.Series(decompose.trend,
+        #                  index=time_axis,
+        #                  name=model) #+" (trend)"
+        #trend.plot()
+        curve.plot()
 
     def get_ref1980(self, model):
         """Process the model to get tco3_zm reference for 1980

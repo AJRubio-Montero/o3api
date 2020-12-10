@@ -20,7 +20,7 @@ TIME = cfg.netCDF_conf['t_c']
 LAT = cfg.netCDF_conf['lat_c']
 
 # configuration for API
-TYPE = cfg.api_conf['plot_t']
+PTYPE = cfg.api_conf['plot_t']
 MODEL = cfg.api_conf['model']
 BEGIN = cfg.api_conf['begin']
 END = cfg.api_conf['end']
@@ -80,7 +80,7 @@ def set_plot_title(**kwargs):
     :return: plot_title with added input parameters
     :rtype: string
     """
-    plot_type = kwargs[TYPE]
+    plot_type = kwargs[PTYPE]
     plot_title = ("requested: " + plot_type + ", " + 
                   str(kwargs[BEGIN]) + ".." + str(kwargs[END]))
     if len(kwargs[MONTH]) > 0:
@@ -128,7 +128,7 @@ def set_figure_attr(fig, **kwargs):
     :param kwargs: The provided  in the API call parameters
     :return: none
     """
-    plot_type = kwargs[TYPE]
+    plot_type = kwargs[PTYPE]
     models = clean_models(**kwargs)
 
     plt.xlabel(plot_c[plot_type]['xlabel'], fontsize='large')

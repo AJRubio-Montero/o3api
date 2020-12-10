@@ -12,6 +12,9 @@ import os
 # logging level accross various scripts
 log_level = logging.DEBUG
 
+# identify basedir for the package
+O3API_BASE_DIR = os.path.dirname(os.path.normpath(os.path.dirname(__file__)))
+
 # Base path for data
 # Default is /srv/o3api/data/
 # But one can change using environment $O3AS_DATA_BASEPATH
@@ -48,7 +51,7 @@ netCDF_conf = {
 
 # REST API parameters. See also swagger.yml (!)
 api_conf = {
-    'plot_t' : 'type',
+    'plot_t' : 'ptype',
     'model'  : 'model',
     'begin'  : 'begin',
     'end'    : 'end',

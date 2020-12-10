@@ -34,7 +34,7 @@ paths:
       produces:
         - "application/json"
       parameters:
-        - name: type
+        - name: ptype
           in: query
           type: string
           description: Plot type (tco3_zm, vmro3_zm, ...)
@@ -76,7 +76,7 @@ paths:
         - "application/pdf"
         - "application/json"
       parameters:
-        - name: type
+        - name: ptype
           in: query
           type: string
           description: Plot type (tco3_zm, vmro3_zm, ...)

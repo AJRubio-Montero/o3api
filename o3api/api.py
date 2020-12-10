@@ -63,8 +63,7 @@ flaat = Flaat()
 flaat.set_trusted_OP_list(cfg.trusted_OP_list)
 
 # configuration for API
-# configuration for API
-TYPE = cfg.api_conf['plot_t']
+PTYPE = cfg.api_conf['plot_t']
 MODEL = cfg.api_conf['model']
 BEGIN = cfg.api_conf['begin']
 END = cfg.api_conf['end']
@@ -211,7 +210,7 @@ def get_model_info(*args, **kwargs):
     :return: Info about the Ozone model
     :rtype: dict
     """
-    plot_type = kwargs[TYPE]
+    plot_type = kwargs[PTYPE]
     model = kwargs[MODEL].lstrip().rstrip()
 
     # create dataset according to the plot type (tco3_zm, vmro3_zm, etc)
@@ -233,7 +232,7 @@ def plot(*args, **kwargs):
     :param kwargs: The provided in the API call parameters
     :return: Either PDF plot or JSON document
     """
-    plot_type = kwargs[TYPE]
+    plot_type = kwargs[PTYPE]
     models = phlp.clean_models(**kwargs)
     time_start = time.time()
 
@@ -298,7 +297,7 @@ def plot(*args, **kwargs):
         json_output = []
         __json_append = json_output.append
 
-        fig_type = { TYPE: plot_type}
+        fig_type = { PTYPE: plot_type}
         __json_append(fig_type)
     
         [ __json_append(__return_json(m)) for m in models ]
