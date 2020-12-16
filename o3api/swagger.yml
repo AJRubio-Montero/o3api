@@ -71,7 +71,7 @@ paths:
       tags:
         - "plot"
       summary: "Making a plot supported by the server application"
-      description: "Create a plot (tco, ...)"
+      description: "Create a plot (tco3_zm, ...)"
       produces:
         - "application/pdf"
         - "application/json"
@@ -94,13 +94,13 @@ paths:
           in: query
           type: integer
           description: Year to start data scanning from
-          default: 1979
+          default: 1959
           required: false
         - name: end
           in: query
           type: integer
           description: Year to finish data scanning
-          default: 2019
+          default: 2100
           required: false
         - name: month
           in: query

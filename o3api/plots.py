@@ -254,9 +254,10 @@ class ProcessForTCO3(DataSelection):
         return data
         
     def get_plot_data(self, model):
-        """Plot tco3_zm data as trend
+        """Plot tco3_zm data applying a smoothing function (boxcar)
         :param model: The model to process for tco3_zm
-        :return: plot of the trend
+        :return: ready for plotting data
+        :rtype: pandas series (pd.Series)
         """
         
         curve = self.get_raw_data(model)

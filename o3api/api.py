@@ -276,14 +276,18 @@ def plot(*args, **kwargs):
 
         [ __return_plot(m) for m in models ]
 
-        phlp.set_figure_attr(fig, **kwargs)
+        #phlp.set_figure_attr(fig, **kwargs)
 
         values1980 = [ __get_ref1980(m) for m in models ]
         ref1980 = np.nanmean(values1980)
         xmin, xmax = plt.xlim()
-        plt.hlines(ref1980, xmin, xmax, colors='k', # 'dimgray'..? 
-                   linestyles='dashed', zorder=256) # big zorder for above all 
+        plt.hlines(ref1980, xmin, xmax, 
+                   colors='k', # 'dimgray'..? 
+                   linestyles='dashed',
+                   zorder=256) # big zorder for above all 
         logger.debug(F"ref1980 values: {values1980} and the mean: {ref1980}")
+
+        phlp.set_figure_attr(fig, **kwargs)
 
         buffer_plot = BytesIO()  # store in IO buffer, not a file
         plt.savefig(buffer_plot, format='pdf', bbox_inches='tight')

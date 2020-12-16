@@ -5,7 +5,7 @@ This code is distributed under the GNU LGPLv3 License. Please, see the LICENSE f
 @authors: Valentin Kozlov, Borja Esteban, Tobias Kerzenmacher (KIT)
 
 # REST API for the O3as service
-[![Build Status](https://jenkins.eosc-synergy.eu/buildStatus/icon?job=eosc-synergy-org%2Fo3api%2Ftest)](https://jenkins.eosc-synergy.eu/job/eosc-synergy-org/job/o3api/job/test/) [![Documentation Status](https://readthedocs.org/projects/o3as/badge/?version=latest)](https://o3as.readthedocs.io/en/latest/?badge=latest)
+[![Build Status](https://jenkins.eosc-synergy.eu/buildStatus/icon?job=eosc-synergy-org%2Fo3api%2Fmaster)](https://jenkins.eosc-synergy.eu/job/eosc-synergy-org/job/o3api/job/master/) [![Documentation Status](https://readthedocs.org/projects/o3as/badge/?version=latest)](https://o3as.readthedocs.io/en/latest/?badge=latest)
 
 O3as is a service for Ozone (O3) Assessment, http://o3as.data.kit.edu/
 
@@ -21,7 +21,7 @@ To start a container which would provide REST API to process a data set, use the
 ```sh
 docker run \
     -v /path/to/data:/srv/o3api/data:ro \
-    synergyimk/o3api:{tag} \
+    o3as/o3api:{tag} \
 ```
 where `tag = latest`
 
@@ -32,7 +32,7 @@ This section would be a good example of a working docker compose file:
 version: '3.7'
 services:
   o3api:
-    image: synergyimk/o3api:{tag}
+    image: o3as/o3api:{tag}
     build:
       context: .
       args:
@@ -77,10 +77,10 @@ The standard way to work with udocker is:
 ### PULL the provided Docker image and CREATE Container
 In the computer where to run with udocker, download the image and create a container:
 
-* `udocker pull synergyimk/o3api:{tag}` <br /> 
+* `udocker pull o3as/o3api:{tag}` <br /> 
 To download the image from the Docker Hub registry.
 
-*  `udocker create --name={container-name} synergyimk/o3api:{tag}` <br /> 
+*  `udocker create --name={container-name} o3as/o3api:{tag}` <br /> 
 To create the corresponding container on your system.
 
 > NB: creating container may take 5-10 minutes...

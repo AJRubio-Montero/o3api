@@ -10,6 +10,7 @@ import o3api.config as cfg
 import logging
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.lines import Line2D
 
 # conigure python logger
 logger = logging.getLogger('__name__') #o3api
@@ -138,8 +139,14 @@ def set_figure_attr(fig, **kwargs):
     num_col = len(models) // 12
     num_col = num_col if (len(models) % 12 == 0) else num_col + 1
     ax = plt.gca() # get axis instance
-    ax_pos = ax.get_position() # get the axes position 
-    plt.legend(loc='upper center', 
+    ax_pos = ax.get_position() # get the axes position
+    # add 'year 1980' line label
+    handles, labels = ax.get_legend_handles_labels()
+    handles.append(Line2D([0], [0], color='k',
+                          linestyle='dashed', 
+                          label='Reference year 1980'))
+    plt.legend(handles=handles,
+               loc='upper center', 
                bbox_to_anchor=[0., ax_pos.y0-0.675, 0.99, 0.3],
                ncol=num_col, fancybox=True, fontsize='small',
                borderaxespad=0.)

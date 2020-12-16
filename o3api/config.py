@@ -66,7 +66,7 @@ plot_conf = {
     netCDF_conf['tco3']: {
         'fig_size': [9, 6],
         'xlabel': 'Year',
-        'ylabel': 'tco3_zm (DU)'
+        'ylabel': 'tco3_zm (DU)' #Total column Ozone, zonal mean (DU)
         }
 }
 

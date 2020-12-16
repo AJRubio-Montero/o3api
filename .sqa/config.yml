@@ -3,8 +3,8 @@ config:
     o3api:
       repo: 'https://git.scc.kit.edu/synergy.o3as/o3api.git'
       branch: test
-      dockerhub: synergyimk/o3api
-      dockertag: test
+      dockerhub: o3as/o3api
+      dockertag: latest
 
 sqa_criteria:
   qc_style:
